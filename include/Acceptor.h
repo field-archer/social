@@ -1,5 +1,9 @@
 #pragma once
 #include"Socket.h"
+
+class Socket;
+
+
 class Acceptor
 {
 private:
