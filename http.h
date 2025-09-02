@@ -46,31 +46,26 @@ public:
     char* text;                         //接收报文body的容器，即用户发送的消息（指向 req_buf）
     char* send_msg_buf;                 //发送的消息（注意生命周期）
 private:
-    void postget();
-
-    void handleChoose();
+    void RecvBuf();                     // 接收数据包   
+    void GetMethod(int& i, int& k);     // 获取请求方法
+    int GetHead();                      // 获取请求头部
+    void SkipSpace(int &i);             // 跳过空白字符
+    int CheckMethod(int& i);            // 检查请求方法是否合法，并判断是否需要手动处理
+    int GetURL(int i);                  // 获取资源路径
+    void handleChoose();                // 处理选择请求
+    int handle_request();               // 处理请求
+    void clear_header();                // 清空请求头部
+    int parse_and_process();            // 解析请求报文并处理
+    void post_data_handle();            // 处理POST请求的数据
+    void postget();                     // 处理POST请求的数据
     // 读取请求相关
-    int get_line(char* buf);
-    void clear_header();
-    int handle_request();
 
-    void GetMethod(int& i, int& k);
-    int GetHead();
-
-    void RecvBuf();
-    int GetURL(int i);
-    int FixPath();
-
-    int CheckMethod(int& i);
-    void SkipSpace(int &i);
-
-    void post_data_handle();
-    void get_data_handle();
-
-    int parse_and_process();
-
+    //----------------------------------
+    void get_data_handle();             // 处理GET请求的数据
+    int FixPath();                      // 获取资源路径（暂时用不到）
+    int get_line(char* buf);            // 读取一行数据
 public:
-    int handler_msg();
-    int send_msg(const char* msg);
-    int Init(int _sock);
-};
+    int Init(int _sock);                 // 初始化
+    int handler_msg();                   // 处理消息请求
+    int send_msg(const char* msg);       // 拼接消息
+};  
