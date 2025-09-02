@@ -1,5 +1,5 @@
-src/CMakeFiles/server.dir/main.cpp.o: /home/aaa/Codes/Group/src/main.cpp \
- /usr/include/stdc-predef.h \
+src/CMakeFiles/server.dir/TcpServer.cpp.o: \
+ /home/aaa/Codes/Group/src/TcpServer.cpp /usr/include/stdc-predef.h \
  /home/aaa/Codes/Group/src/../include/TcpServer.h /usr/include/string.h \
  /usr/include/bits/libc-header-start.h /usr/include/features.h \
  /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h \

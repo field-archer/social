@@ -1,21 +1,24 @@
 #include"TcpServer.h"
 
-TcpServer::TcpServer(string ip,uint16_t port)
+TcpServer::TcpServer(std::string ip,uint16_t port)
 {
-    acceptor_=new Acceptor(ip,port);
-
     eventLoop_=new EventLoop();
+    acceptor_=new Acceptor(ip,port,eventLoop_);
+    acceptor_->SetNewConnectionCB(bind(&TcpServer::NewConnection,this,std::placeholders::_1));
+
 }
 TcpServer::~TcpServer()
 {
     delete acceptor_;
     delete eventLoop_;
-}
+}   
 void TcpServer::Start()
 {
+    eventLoop_->run();
+}
+void TcpServer::NewConnection(Socket *clieSocket)
+{
+    Connection *newConnection=new Connection(clieSocket->fd(),eventLoop_);
 
 }
-void TcpServer::SetNewConnectionCB()
-{
-    
-}
+

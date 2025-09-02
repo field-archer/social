@@ -178,6 +178,30 @@ Channel.cpp.s:
 	cd /home/aaa/Codes/Group/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/server.dir/build.make src/CMakeFiles/server.dir/Channel.cpp.s
 .PHONY : Channel.cpp.s
 
+Connection.o: Connection.cpp.o
+.PHONY : Connection.o
+
+# target to build an object file
+Connection.cpp.o:
+	cd /home/aaa/Codes/Group/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/server.dir/build.make src/CMakeFiles/server.dir/Connection.cpp.o
+.PHONY : Connection.cpp.o
+
+Connection.i: Connection.cpp.i
+.PHONY : Connection.i
+
+# target to preprocess a source file
+Connection.cpp.i:
+	cd /home/aaa/Codes/Group/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/server.dir/build.make src/CMakeFiles/server.dir/Connection.cpp.i
+.PHONY : Connection.cpp.i
+
+Connection.s: Connection.cpp.s
+.PHONY : Connection.s
+
+# target to generate assembly for a file
+Connection.cpp.s:
+	cd /home/aaa/Codes/Group/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/server.dir/build.make src/CMakeFiles/server.dir/Connection.cpp.s
+.PHONY : Connection.cpp.s
+
 Epoll.o: Epoll.cpp.o
 .PHONY : Epoll.o
 
@@ -337,6 +361,9 @@ help:
 	@echo "... Channel.o"
 	@echo "... Channel.i"
 	@echo "... Channel.s"
+	@echo "... Connection.o"
+	@echo "... Connection.i"
+	@echo "... Connection.s"
 	@echo "... Epoll.o"
 	@echo "... Epoll.i"
 	@echo "... Epoll.s"

@@ -10,6 +10,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/aaa/Codes/Group/src/Acceptor.cpp" "src/CMakeFiles/server.dir/Acceptor.cpp.o" "gcc" "src/CMakeFiles/server.dir/Acceptor.cpp.o.d"
   "/home/aaa/Codes/Group/src/Channel.cpp" "src/CMakeFiles/server.dir/Channel.cpp.o" "gcc" "src/CMakeFiles/server.dir/Channel.cpp.o.d"
+  "/home/aaa/Codes/Group/src/Connection.cpp" "src/CMakeFiles/server.dir/Connection.cpp.o" "gcc" "src/CMakeFiles/server.dir/Connection.cpp.o.d"
   "/home/aaa/Codes/Group/src/Epoll.cpp" "src/CMakeFiles/server.dir/Epoll.cpp.o" "gcc" "src/CMakeFiles/server.dir/Epoll.cpp.o.d"
   "/home/aaa/Codes/Group/src/EventLoop.cpp" "src/CMakeFiles/server.dir/EventLoop.cpp.o" "gcc" "src/CMakeFiles/server.dir/EventLoop.cpp.o.d"
   "/home/aaa/Codes/Group/src/InetAddr.cpp" "src/CMakeFiles/server.dir/InetAddr.cpp.o" "gcc" "src/CMakeFiles/server.dir/InetAddr.cpp.o.d"

@@ -1,8 +1,12 @@
 file(REMOVE_RECURSE
+  "/home/aaa/Codes/Group/bin/server"
+  "/home/aaa/Codes/Group/bin/server.pdb"
   "CMakeFiles/server.dir/Acceptor.cpp.o"
   "CMakeFiles/server.dir/Acceptor.cpp.o.d"
   "CMakeFiles/server.dir/Channel.cpp.o"
   "CMakeFiles/server.dir/Channel.cpp.o.d"
+  "CMakeFiles/server.dir/Connection.cpp.o"
+  "CMakeFiles/server.dir/Connection.cpp.o.d"
   "CMakeFiles/server.dir/Epoll.cpp.o"
   "CMakeFiles/server.dir/Epoll.cpp.o.d"
   "CMakeFiles/server.dir/EventLoop.cpp.o"
@@ -15,8 +19,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/server.dir/TcpServer.cpp.o.d"
   "CMakeFiles/server.dir/main.cpp.o"
   "CMakeFiles/server.dir/main.cpp.o.d"
-  "server"
-  "server.pdb"
 )
 
 # Per-language clean rules from dependency scanning.

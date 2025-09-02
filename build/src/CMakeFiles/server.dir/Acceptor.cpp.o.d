@@ -1,14 +1,13 @@
-src/CMakeFiles/server.dir/main.cpp.o: /home/aaa/Codes/Group/src/main.cpp \
- /usr/include/stdc-predef.h \
- /home/aaa/Codes/Group/src/../include/TcpServer.h /usr/include/string.h \
+src/CMakeFiles/server.dir/Acceptor.cpp.o: \
+ /home/aaa/Codes/Group/src/Acceptor.cpp /usr/include/stdc-predef.h \
+ /home/aaa/Codes/Group/src/../include/Acceptor.h /usr/include/string.h \
  /usr/include/bits/libc-header-start.h /usr/include/features.h \
  /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h \
  /usr/include/bits/long-double.h /usr/include/gnu/stubs.h \
  /usr/include/gnu/stubs-64.h \
  /usr/lib/gcc/x86_64-redhat-linux/8/include/stddef.h \
  /usr/include/bits/types/locale_t.h /usr/include/bits/types/__locale_t.h \
- /usr/include/strings.h /home/aaa/Codes/Group/src/../include/Acceptor.h \
- /usr/include/c++/8/functional \
+ /usr/include/strings.h /usr/include/c++/8/functional \
  /usr/include/c++/8/x86_64-redhat-linux/bits/c++config.h \
  /usr/include/c++/8/x86_64-redhat-linux/bits/os_defines.h \
  /usr/include/c++/8/x86_64-redhat-linux/bits/cpu_defines.h \
@@ -120,5 +119,4 @@ src/CMakeFiles/server.dir/main.cpp.o: /home/aaa/Codes/Group/src/main.cpp \
  /usr/include/c++/8/bits/stl_vector.h \
  /usr/include/c++/8/bits/stl_bvector.h /usr/include/c++/8/bits/vector.tcc \
  /home/aaa/Codes/Group/src/../include/Epoll.h /usr/include/sys/epoll.h \
- /usr/include/bits/epoll.h \
- /home/aaa/Codes/Group/src/../include/Connectio.h
+ /usr/include/bits/epoll.h
