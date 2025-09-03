@@ -1,4 +1,5 @@
 #pragma once
+#include<map>
 #include<string.h>
 #include"Acceptor.h"
 #include"EventLoop.h"
@@ -10,13 +11,15 @@ class Acceptor;
 class TcpServer
 {
 private:
-    Acceptor *acceptor_;                    //初始化工作
-    EventLoop *eventLoop_;                  //事件循环
+    Acceptor *acceptor_;                        //用于接收新连接，产生socket
+    EventLoop *eventLoop_;                      //事件循环
+    std::map<int,Connection*>connections;       //map:fd-Connection管理生命周期
 public:
-    TcpServer(std::string _ip,uint16_t _port);                            //构造函数
-    ~TcpServer();                                                    //析构函数
+    TcpServer(std::string _ip,uint16_t _port);  //构造函数
+    ~TcpServer();                               //析构函数：acceptor eventLoop_ connection们
 
-    void Start();                                                    //处理事件
+    void Start();                               //处理事件
  
-    void NewConnection(Socket *clieSocket);                                            //新连接
+    void NewConnection(Socket *clieSocket);     //处理新连接，将fd交给Connection，处理客户端ip和port
+    void DelConnection(int _fd);                //根据fd关闭Connection，map中也删除
 };

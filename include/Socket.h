@@ -7,17 +7,17 @@
 #include<cstdint>
 #include<sys/socket.h>
 #include<netinet/tcp.h>
+#include<unistd.h>
 #include"InetAddr.h"
 class Socket
 {
 private:
     int fd_;                                    //文件描述符
-    std::string ip_;                                 //ip地址
+    std::string ip_;                            //ip地址
     uint16_t port_;                             //端口
 public:
     Socket(std::string _ip, uint16_t _port);    //服务端socket构造函数（ip和port）
-    Socket(int _fd,InetAddr clieAddr);          //客户端socket构造函数
-    Socket();                                   //默认构造函数
+    Socket(int _fd,std::string _ip,uint16_t _port);//客户端socket构造函数
     ~Socket();                                  //析构函数
 
     void SetNonBlock();                         //非阻塞
@@ -31,4 +31,6 @@ public:
     int accept(InetAddr clieAddr_);             //受理连接
 
     int fd();                                   //fd接口
+    std::string ip();                           //ip接口
+    uint16_t port();                            //port接口
 };

@@ -13,14 +13,14 @@ class EventLoop;
 class Acceptor
 {
 private:
-    Socket servSocket;
-    Channel *servChannel;                                               //生命周期和EventLoop一样，不析构
-    EventLoop *eventLoop_;                                                      //生命周期和EventLoop一样，不析构
-    std::function<void(Socket *clieSocket)> newConnectionCB;                              //在tcpserver中绑定Connection的初始化，acceptor处理新连接时调用该回调函数
+    Socket *servSocket;                                                         //生命周期和Acceptor一样，析构
+    Channel *servChannel;                                                       //生命周期和Acceptor一样，析构
+    EventLoop *eventLoop_;                                                      //生命周期和TcpServer一样，不析构
+    std::function<void(Socket *clieSocket)> newConnectionCB;                    //将客户端socket传递至TcpServer
 public:
-    Acceptor(std::string _ip,uint16_t _port,EventLoop *_eventLoop);
-    ~Acceptor();
+    Acceptor(std::string _ip,uint16_t _port,EventLoop *_eventLoop);             //构造函数
+    ~Acceptor();                                                                //析构函数
 
-    void SetNewConnectionCB(std::function<void(Socket *clieSocket)> _fun);                //绑定acceptor处理新连接的回调函数
-    void NewConnection();                                               //处理新连接
+    void SetNewConnectionCB(std::function<void(Socket *clieSocket)> _fun);      //绑定acceptor处理新连接的回调函数
+    void NewConnection();                                                       //处理新连接，产生客户端socket并通过回调函数传递至TcpServer
 };
