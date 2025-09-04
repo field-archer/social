@@ -29,7 +29,7 @@ void Acceptor::NewConnection()
 {
     InetAddr clieAddr;                                      //客户端地址
     int clie_fd=servSocket->accept(clieAddr);                //通过accept获取客户端fd
-    Socket *clieSocket=new Socket(clie_fd,clieAddr.ip(),clieAddr.port());////////////////////////////////////////////////////////////////////////////////////////客户端socket,未delete（不好在acceptor和Tcpserver中delete），存在漏洞
+    Socket *clieSocket=new Socket(clie_fd,clieAddr.ip(),clieAddr.port());////////////////////////////////////////////////////////////////////////////////////////客户端socket,在Connectoin中delete，这并不好
     clieSocket->SetKeepAlive();                             //僵尸连接
     clieSocket->SetNonBlock();                              //非阻塞
     clieSocket->SetReuseAddr();                             //time_wait
