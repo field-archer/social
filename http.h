@@ -59,7 +59,7 @@ private:
     void post_data_handle();            // 处理POST请求的数据
     void postget();                     // 处理POST请求的数据
     // 读取请求相关
-
+    
     //----------------------------------
     void get_data_handle();             // 处理GET请求的数据
     int FixPath();                      // 获取资源路径（暂时用不到）
@@ -67,5 +67,5 @@ private:
 public:
     int Init(int _sock);                 // 初始化
     int handler_msg();                   // 处理消息请求
-    int send_msg(const char* msg);       // 拼接消息
+    int send_msg( char *uname ,int type , char* msg);       // 拼接消息
 };  

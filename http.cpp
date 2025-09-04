@@ -394,11 +394,15 @@ int Http::handler_msg()
     return 0;
 }
 
+//这个body也是未组装的
+
 // 发送 HTTP 响应（传入 body）
-int Http::send_msg(const char *body)
+int Http::send_msg( char *uname ,int type , char *msg)
 {
-    if (!body)
-        body = "";
+    if (!msg)
+        msg = "";
+    char body[1024];
+    sprintf(body, "username=%s&type=%d&content=%s", uname, type, msg);
 
     char header[512];
     int body_len = (int)strlen(body);
