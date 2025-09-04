@@ -1,10 +1,12 @@
 #pragma once
-#include"EventLoop.h"               //eventLoop和epoll均只有一个，用eventloop替代epoll，以便在tcpserver中使用eventLoop替代epoll
 #include<functional>
 #include<sys/socket.h>
 #include<unistd.h>
+#include"http.h"
+#include"EventLoop.h"               //eventLoop和epoll均只有一个，用eventloop替代epoll，以便在tcpserver中使用eventLoop替代epoll
 class Epoll;
 class EventLoop;
+class http;
 
 class Channel
 {
