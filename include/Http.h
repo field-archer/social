@@ -67,5 +67,6 @@ private:
 public:
     int Init(int _sock);                 // 初始化
     int handler_msg();                   // 处理消息请求
-    int send_msg( char *uname ,int type , char* msg);       // 拼接消息
+    int ChangeToHttp( char *uname ,int type , char *head , char *msg);  //将消息转化为http格式（head和msg）
+                                        
 };  

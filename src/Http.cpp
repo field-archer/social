@@ -1,4 +1,4 @@
-#include "http.h"
+#include "Http.h"
 
 // helper: 从 application/x-www-form-urlencoded 查询串中取 key 的值指针（会把 '&' 改为 '\0'）
 static char *_get_param(char *buf, const char *key)
@@ -390,17 +390,17 @@ int Http::handler_msg()
     CheckMethod(i);
     handleChoose();
 
-    close(sock);
+    // close(sock); ///////////////////////////////////////////////////外界管理socket                                                    
     return 0;
 }
 
 //这个body也是未组装的
 
 // 发送 HTTP 响应（传入 body）
-int Http::send_msg( char *uname ,int type , char *msg)
+int Http::ChangeToHttp( char *uname ,int type , char *head , char *msg)
 {
     if (!msg)
-        msg = "";
+        msg = const_cast<char*>("发送的消息不能为空！");
     char body[1024];
     sprintf(body, "username=%s&type=%d&content=%s", uname, type, msg);
 
@@ -417,16 +417,8 @@ int Http::send_msg( char *uname ,int type , char *msg)
     if (header_len < 0)
         return -1;
 
-    if ((int)send(sock, header, header_len, 0) != header_len)
-    {
-        // 发送 header 错误
-    }
-    if (body_len > 0)
-    {
-        if ((int)send(sock, body, body_len, 0) != body_len)
-        {
-            // 发送 body 错误
-        }
-    }
+    strncpy(msg,body,body_len);
+    strncpy(head,header,512);
+
     return 0;
 }

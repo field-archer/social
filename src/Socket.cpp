@@ -71,10 +71,11 @@ void Socket::listen(int len)                                            //设置
         exit(-1);
     }
 }
-int Socket::accept(InetAddr clieAddr_)                                  //受理连接      accept
+int Socket::accept(InetAddr& _clieAddr)                                  //受理连接      accept
 {
-    socklen_t addrLen=sizeof(clieAddr_.addr());
-    int clie_fd=::accept(fd_,clieAddr_.addr(),&addrLen);
+    memset(&_clieAddr,0,sizeof(_clieAddr));
+    socklen_t addrLen=sizeof(_clieAddr.addr());
+    int clie_fd=::accept(fd_,_clieAddr.addr(),&addrLen);
     if(clie_fd==-1)
     {
         printf("文件%s的%d行的[%s]函数出错,fd=%d\n", __FILE__, __LINE__, __func__,fd_);

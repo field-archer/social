@@ -28,7 +28,7 @@ public:
 
     void bind(InetAddr _addr);                  //绑定ip和端口
     void listen(int len);                       //设置监听
-    int accept(InetAddr clieAddr_);             //受理连接
+    int accept(InetAddr& clieAddr_);             //受理连接
 
     int fd();                                   //fd接口
     std::string ip();                           //ip接口

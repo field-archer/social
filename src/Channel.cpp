@@ -20,6 +20,21 @@ void Channel::EnableReading()                   //使该channel加入事件循�
     Tevent_|=EPOLLIN;               //关注可读
     eventLoop_->UpdateChannel(this);//注册       
 }
+void Channel::DisableReading()
+{
+    Tevent_&=~EPOLLIN;
+    eventLoop_->UpdateChannel(this);
+}
+void Channel::EnableWriting()
+{
+    Tevent_|=EPOLLOUT;
+    eventLoop_->UpdateChannel(this);
+}
+void Channel::DisableWriting()
+{
+    Tevent_&=~EPOLLOUT;
+    eventLoop_->UpdateChannel(this);
+}
 void Channel::SetInEpoll()                      //设置inEpoll
 {
     inEpoll_=true;
@@ -48,103 +63,131 @@ int Channel::fd()                               //返回fd
 
 void Channel::HandleEvent()                     //处理事件
 {
-    if(Revent()&EPOLLRDHUP)                     //客户端关闭                            
+    if(Revent()&EPOLLRDHUP)                     //关闭事件                           
     {
         printf("关闭事件\n");
         HandleCloseEvent(fd_);
     }else if(Revent()&EPOLLIN)                  //读事件
     {
-        printf("正常读事件\n");
-        HandleReadEvent();
-    }else                                       //其余事件
+        int TYPE_=-1;
+        std::string name_="";
+        std::string message_="";
+        HandleHttp(TYPE_,name_,message_);
+        if(TYPE_==LOGIN)
+        {
+            HandleLogInEvent(name_);            //用户登录
+        }else if(TYPE_==LOGOUT)
+        {
+            HandleLogOutEvent();                //用户登出
+        }else if(TYPE_==MESSAGE)
+        {
+            HandleMessageEvent(message_);       //消息事件
+        }
+    }else                                       //其余事件一律关闭
     {
         printf("发生其余事件：%d\n",Revent());
+        HandleCloseEvent(fd_);
     }
 }
-void Channel::SetHandleReadEvent(std::function<void()> _fun)//设置处理读事件的回调函数
+void Channel::HandleHttp(int& _TYPE,std::string& _name,std::string& _message)
+{
+    //TODO，
+    char buffer[4096];
+    ssize_t bytes_read = read(fd_, buffer, sizeof(buffer)-1);
+    if (bytes_read <= 0) {
+        _TYPE = -1;
+        return;
+    }
+    buffer[bytes_read] = '\0';
+
+    // 解析HTTP请求行
+    char method[32] = {0};
+    char url[1024] = {0};
+    sscanf(buffer, "%31s %1023s", method, url);
+
+    // 查找消息体开始位置
+    char* body_start = strstr(buffer, "\r\n\r\n");
+    if (!body_start) {
+        _TYPE = -1;
+        return;
+    }
+    body_start += 4;
+
+    // 解析查询参数或消息体
+    char* params = nullptr;
+    if (strcasecmp(method, "GET") == 0) {
+        params = strchr(url, '?');
+        if (params) *params++ = '\0';
+    } else if (strcasecmp(method, "POST") == 0) {
+        params = body_start;
+    }
+
+    // 提取参数
+    if (params) {
+        char* token = strtok(params, "&");
+        while (token) {
+            char* eq = strchr(token, '=');
+            if (eq) {
+                *eq = '\0';
+                if (strcmp(token, "type") == 0) {
+                    _TYPE = atoi(eq+1);
+                } else if (strcmp(token, "username") == 0) {
+                    _name = eq+1;
+                } else if (strcmp(token, "content") == 0) {
+                    _message = eq+1;
+                }
+            }
+            token = strtok(nullptr, "&");
+        }
+    }
+}
+void Channel::SetHandleReadEvent(std::function<void()> _fun)            //设置处理读事件的回调函数
 {
     HandleReadEvent=_fun;
 }
-void Channel::SetHandleCloseEvent(std::function<void(int)> _fun)
+void Channel::SetHandleCloseEvent(std::function<void(int)> _fun)        //设置处理关闭事件的回调函数
 {
     HandleCloseEvent=_fun;
 }
-void Channel::DataChange()                      //处理正常读事件，数据收发
+void Channel::SetHandleLogInEvent(std::function<void(std::string _name)> _fun)      //设置处理登录事件的回调函数
 {
+    HandleLogInEvent=_fun;
+}
+void Channel::SetHandleLogOutEvent(std::function<void()> _fun)                       //设置处理用户登出的回调函数
+{
+    HandleLogOutEvent=_fun;
+}
+void Channel::SetHandleMessageEvent(std::function<void(std::string)> _fun)           //设置处理消息事件的回调函数
+{
+    HandleMessageEvent=_fun;
+}
+void Channel::Send(std::string message)                                 //发送消息
+{
+    MessageToHttp(message);
+    int sendn=::send(fd_,message.data(),message.size(),0);
+}
+void Channel::MessageToHttp(std::string& message)
+{
+    //TODO
+    std::stringstream http_response;
+    http_response << "HTTP/1.1 200 OK\r\n"
+                  << "Content-Type: text/plain\r\n"
+                  << "Content-Length: " << message.length() << "\r\n"
+                  << "Connection: close\r\n"
+                  << "\r\n"
+                  << message;
     
-    const int buffsize=1024;
-    char recvBuf[buffsize]="";  //接收缓冲区
-    char sendBuf[buffsize]="";  //发送缓冲区
-    
-    while(true)
-    {
-        int recvn=::recv(fd_,recvBuf,buffsize-1,0);//bufsize-1保证有'\0'位置
-        if(recvn==-1)                              //出错
-        {
-            if(errno==EAGAIN||errno==EWOULDBLOCK)
-            {
-                printf("回显完毕\n");
-                break;
-            }else if(errno==EINTR)
-            {
-                printf("信号终端，重新接收\n");
-                continue;
-            }else if(errno==ENOTCONN)
-            {
-                printf("fd（%d）未连接\n",fd_);
-                break;
-            }else if(errno==EBADF)
-            {
-                printf("无效fd(%d)\n",fd_);
-                break;
-            }else 
-            {
-                printf("文件%s的%d行的[%s]函数出错,fd=%d\n", __FILE__, __LINE__, __func__,fd_);
-                perror("接收客户端的数据出错:");
-                break;
-            }
-        }else if(recvn==0)                          //对方关闭
-        {
-            printf("对方已关闭\n");
-            HandleCloseEvent(fd_);
-            break;
-        }else                                       //正常 
-        {   
-            recvBuf[recvn]='\0';
-            strncpy(sendBuf,recvBuf,buffsize);
-            int sendn=::send(fd_,sendBuf,strlen(sendBuf),0);
-            if(sendn==-1)                           //发送出错
-            {
-                if(errno==EPIPE)
-                {
-                    printf("连接（%d）已关闭\n",fd_);
-                    break;
-                }else if(errno==EMSGSIZE)
-                {
-                    printf("消息过大，不支持发送\n");
-                    break;
-                }else if(errno==EINTR)
-                {
-                    printf("信号终端，重试\n");
-                    continue;
-                }else 
-                {
-                    printf("文件%s的%d行的[%s]函数出错,fd=%d\n", __FILE__, __LINE__, __func__,fd_);
-                    perror("发送数据出错:");
-                    break;
-                }
-            }else if(sendn==0)                      //对方关闭
-            {
-                printf("对方已关闭\n");
-                HandleCloseEvent(fd_);
-                break;
-            }else                                   //发送正常
-            {
-                printf("已回显发送%d字节\n",sendn);
-            }
-        }
-    }
-    
+    message = http_response.str();
+}
+
+
+
+
+
+
+void Channel::SetHandleWriteEvent(std::function<void()> _fun)
+{
+    HandleWriteEvent=_fun;
 }
 void Channel::SetRevent(uint32_t _event)                       //设置发生的事件
 {
