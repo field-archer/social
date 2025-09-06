@@ -1,432 +1,319 @@
-#include "http.h"
+// http_text_tool.cpp
+#include "http_text_tool.h"
 
-// helper: 从 application/x-www-form-urlencoded 查询串中取 key 的值指针（会把 '&' 改为 '\0'）
-static char *_get_param(char *buf, const char *key)
+Http::Http()
 {
-    if (!buf || !key)
-        return NULL;
-    char pattern[64];
-    snprintf(pattern, sizeof(pattern), "%s=", key);
-    char *p = strstr(buf, pattern);
-    if (!p)
-        return NULL;
-    p += strlen(pattern);
-    char *end = strchr(p, '&');
-    if (end)
-    {
-        *end = '\0';
-    }
-    return p;
+    reset();
 }
 
-// 功能：
-// 获取用户名，消息类型，消息内容
-void Http::postget()
+void Http::reset()
 {
-    char *u = _get_param(req_buf, "username");
-    char *t = _get_param(req_buf, "type");
-    char *c = _get_param(req_buf, "content");
-
-    if (u)
-        username = u;
-    if (t)
-        type = atoi(t);
-    if (c)
-        text = c;
-}
-
-//处理POST请求数据
-void Http::post_data_handle()
-{
-    postget();
-}
-
-//处理GET请求数据
-void Http::get_data_handle()
-{
-    // 根据需要实现 GET 参数的解析
-}
-
-//解析请求报文，并处理请求
-int Http::parse_and_process()
-{
-    if (STRCASECMP(method, "POST") == 0)
-    {
-        post_data_handle();
-    }
-    else if (STRCASECMP(method, "GET") == 0)
-    {
-        get_data_handle();
-    }
-    return 0;
-}
-
-// 读取一行数据
-//  buf: 存放读取的数据的缓冲区
-//  返回值: 读取的字节数
-int Http::get_line(char *buf)
-{
-    if (!buf)
-        return -1;
-    int i = 0;
-    char ch = '\0';
-    int ret = 0;
-
-    while (i < SIZE - 1)
-    {
-        ret = recv(sock, &ch, 1, 0);
-        if (ret == 0)
-        {
-            if (i == 0)
-                return -1; // 对端关闭，且未读到任何数据
-            break;
-        }
-        if (ret < 0)
-        {
-            return -1; // 错误
-        }
-
-        if (ch == '\r')
-        {
-            // peek 下一个字符是否是 '\n'
-            int s = recv(sock, &ch, 1, MSG_PEEK);
-            if (s > 0 && ch == '\n')
-            {
-                // 真的有 '\n'，消费它
-                recv(sock, &ch, 1, 0);
-                buf[i++] = '\n';
-                break;
-            }
-            else
-            {
-                buf[i++] = '\n';
-                break;
-            }
-        }
-
-        buf[i++] = ch;
-        if (ch == '\n')
-            break;
-    }
-
-    buf[i] = '\0';
-    return i;
-}
-
-// 清除请求头部和响应头部
-//  读取并丢弃请求头部和响应头部
-void Http::clear_header()
-{
-    char buf[SIZE];
-    while (true)
-    {
-        int n = get_line(buf);
-        if (n <= 0)
-            break;
-        if (buf[0] == '\n' || (buf[0] == '\r' && (buf[1] == '\n' || buf[1] == '\0')))
-            break;
-    }
-}
-
-// 处理请求
-//  sock: 套接字
-//  method: 请求方法
-//  query_string: 请求数据
-//  返回值: 0表示成功，其他表示失败
-int Http::handle_request()
-{
-    char line[SIZE] = "";
-    int ret = 0;
+    buffer.clear();
+    method.clear();
+    url.clear();
+    query_string.clear();
     content_len = 0;
-
-    if (STRCASECMP(method, "GET") == 0)
-    {
-        clear_header();
-    }
-    else
-    {
-        // 读取 header 并寻找 Content-Length
-        while (true)
-        {
-            ret = get_line(line);
-            if (ret <= 0)
-                break;
-            if (line[0] == '\n' || (line[0] == '\r' && (line[1] == '\n' || line[1] == '\0')))
-                break;
-
-            if (STRNCASECMP(line, "Content-Length", 14) == 0)
-            {
-                char *p = strchr(line, ':');
-                if (p)
-                {
-                    p++;
-                    while (*p && isspace((unsigned char)*p))
-                        p++;
-                    long tmp = atol(p);
-                    if (tmp < 0)
-                        tmp = 0;
-                    const long MAX_BODY = (long)sizeof(req_buf) - 1;
-                    if (tmp > MAX_BODY)
-                        tmp = MAX_BODY;
-                    content_len = (int)tmp;
-                }
-            }
-        }
-    }
-
-    printf("method:%s\n", method);
-    printf("query_string:%s\n", query_string ? query_string : "(null)");
-    printf("content_len:%d\n", content_len);
-
-    // 读取 POST body（如果有）
-    if (STRCASECMP(method, "POST") == 0 && content_len > 0)
-    {
-        int total = 0;
-        while (total < content_len)
-        {
-            int r = recv(sock, req_buf + total, content_len - total, 0);
-            if (r <= 0)
-                break;
-            total += r;
-        }
-        if (total >= 0)
-            req_buf[total] = '\0';
-        else
-            req_buf[0] = '\0';
-
-        printf("read body bytes: %d\n", total);
-        printf("req_buf: %s\n", req_buf);
-    }
-    else
-    {
-        req_buf[0] = '\0';
-    }
-
-    const char *msg = "HTTP/1.1 200 OK\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
-    send(sock, msg, (int)strlen(msg), 0);
-
-    parse_and_process();
-
-    return 0;
-}
-
-// 获取请求方法
-//  i: 报文的读取位置
-//  k: method数组的读入位置
-void Http::GetMethod(int &i, int &k)
-{
-    int count = GetHead();
-    if (count <= 0)
-        return;
-    for (; i < count; i++)
-    {
-        if (isspace((unsigned char)head_buf[i]))
-            break;
-        if (k < (int)(sizeof(method) - 1))
-            method[k++] = head_buf[i];
-    }
-    method[k] = '\0';
-}
-
-// 获取请求头部
-int Http::GetHead()
-{
-    int count = get_line(head_buf);
-    return count;
-}
-
-// 从sock中peek全部报文信息到缓冲区
-void Http::RecvBuf()
-{
-    recv(sock, del_buf, SIZE, MSG_PEEK);
-    printf("接收到数据包\n");
-#if 1
-    printf("-------------------------------------------------\n");
-    printf("%s\n", del_buf);
-    printf("-------------------------------------------------\n");
-#endif
-}
-
-// 从缓冲区获取路径
-//  i: 报文的读取位置
-int Http::GetURL(int i)
-{
-    int t = 0;
-    int len = (int)strlen(head_buf);
-    for (; i < len; ++i)
-    {
-        if (isspace((unsigned char)head_buf[i]))
-            break;
-        if (head_buf[i] == '?')
-        {
-            // 终止 url，然后把 ? 后面拷贝到 url 的后面并设置 query_string
-            url[t] = '\0';
-            ++i;
-            int j = t;
-            for (; i < len && !isspace((unsigned char)head_buf[i]) && j < SIZE - 1; ++i, ++j)
-            {
-                url[j] = head_buf[i];
-            }
-            url[j] = '\0';
-            query_string = &url[t];
-            return i;
-        }
-        else
-        {
-            if (t < SIZE - 1)
-                url[t++] = head_buf[i];
-            else
-                break;
-        }
-    }
-    url[t] = '\0';
-    query_string = NULL;
-    return i;
-}
-
-// 将URL路径转化为本地路径
-int Http::FixPath()
-{
-    // 使用 snprintf/strncat 保证安全
-    snprintf(path, sizeof(path), "../wwwroot%s", url);
-    size_t plen = strlen(path);
-    if (plen > 0 && path[plen - 1] == '/')
-    {
-        strncat(path, "index.html", sizeof(path) - strlen(path) - 1);
-    }
-
-    printf("path:%s\n", path);
-
-    struct stat st;
-    if (stat(path, &st) == -1)
-    {
-        printf("文件不存在\n");
-        close(sock);
-        return -1;
-    }
-    return 0;
-}
-
-// 检查请求方法是否合法，并判断是否需要手动处理
-//  i: 报文的读取位置
-int Http::CheckMethod(int &i)
-{
-    if (STRCASECMP(method, "GET") != 0 && STRCASECMP(method, "POST") != 0)
-    {
-        printf("method:%s\n", method);
-        printf("请求方法错误\n");
-        close(sock);
-        exit(0);
-    }
-
-    if (STRCASECMP(method, "POST") == 0)
-    {
-        need_handle = 1;
-    }
-
-    i = GetURL(i);
-
-    if (STRCASECMP(method, "GET") == 0 && query_string != NULL)
-    {
-        need_handle = 1;
-    }
-
-    return 0;
-}
-
-//跳过空格
-// i: 报文的读取位置
-void Http::SkipSpace(int &i)
-{
-    while (i < SIZE && head_buf[i] && isspace((unsigned char)head_buf[i]))
-    {
-        i++;
-    }
-}
-
-// 根据是否需要手动处理信息选择处理方法
-void Http::handleChoose()
-{
-    if (need_handle == 1)
-    {
-        handle_request();
-    }
-    else
-    {
-        clear_header();
-    }
-}
-
-//初始化
-// _sock: 套接字
-int Http::Init(int _sock)
-{
-    sock = _sock;
-    memset(del_buf, 0, sizeof(del_buf));
-    memset(method, 0, sizeof(method));
-    memset(url, 0, sizeof(url));
-    query_string = NULL;
-    need_handle = 0;
-    memset(path, 0, sizeof(path));
-    memset(req_buf, 0, sizeof(req_buf));
-    content_len = 0;
+    param_map.clear();
+    username.clear();
+    text.clear();
     type = 0;
-    username = NULL;
-    text = NULL;
-    send_msg_buf = NULL;
+}
+
+const string &Http::get_method() const { return method; }
+const string &Http::get_url() const { return url; }
+const string &Http::get_query_string() const { return query_string; }
+int Http::get_content_length() const { return content_len; }
+const string &Http::get_username() const { return username; }
+const string &Http::get_text() const { return text; }
+const map<string, string> &Http::params() const { return param_map; }
+
+string Http::tolower_copy(const string &s)
+{
+    std::string t = s;
+    std::transform(t.begin(), t.end(), t.begin(), [](unsigned char c)
+                   { return std::tolower(c); });
+    return t;
+}
+
+vector<string> Http::split(const string &s, char delim)
+{
+    std::vector<std::string> out;
+    std::string cur;
+    std::istringstream iss(s);
+    while (std::getline(iss, cur, delim))
+        out.push_back(cur);
+    return out;
+}
+
+string Http::url_decode(const string &s)
+{
+    std::string ret;
+    for (size_t i = 0; i < s.size(); ++i)
+    {
+        char c = s[i];
+        if (c == '+')
+        {
+            ret.push_back(' ');
+        }
+        else if (c == '%' && i + 2 < s.size())
+        {
+            char h1 = s[i + 1];
+            char h2 = s[i + 2];
+            auto hexval = [](char ch) -> int
+            {
+                if (ch >= '0' && ch <= '9')
+                    return ch - '0';
+                if (ch >= 'A' && ch <= 'F')
+                    return ch - 'A' + 10;
+                if (ch >= 'a' && ch <= 'f')
+                    return ch - 'a' + 10;
+                return 0;
+            };
+            char decoded = (char)((hexval(h1) << 4) | hexval(h2));
+            ret.push_back(decoded);
+            i += 2;
+        }
+        else
+        {
+            ret.push_back(c);
+        }
+    }
+    return ret;
+}
+
+void Http::parse_query_string_to_map(const string &qs)
+{
+    param_map.clear();
+    if (qs.empty())
+        return;
+    auto parts = split(qs, '&');
+    for (auto &p : parts)
+    {
+        size_t pos = p.find('=');
+        if (pos == std::string::npos)
+            continue;
+        std::string k = p.substr(0, pos);
+        std::string v = p.substr(pos + 1);
+        param_map[k] = url_decode(v);
+    }
+}
+
+void Http::parse_urlencoded_body(const string &body)
+{
+    parse_query_string_to_map(body);
+    // 填充常用字段（username,type,content）
+    auto it = param_map.find("username");
+    if (it != param_map.end())
+        username = it->second;
+    it = param_map.find("content");
+    if (it != param_map.end())
+        text = it->second;
+    it = param_map.find("type");
+    if (it != param_map.end())
+        type = atoi(it->second.c_str());
+}
+
+void Http::parse_request_line_and_headers(const string &header_block)
+{
+    // header_block: 包含 request-line 和 headers（不含 \r\n\r\n）
+    // 分成行
+    auto lines = split(header_block, '\n');
+    if (lines.empty())
+        return;
+    // request line
+    // 形如: "POST /path?x=1 HTTP/1.1"
+    {
+        istringstream iss(lines[0]);
+        iss >> method;
+        string fullurl;
+        iss >> fullurl;
+        // 分离 url 和 query_string
+        size_t qpos = fullurl.find('?');
+        if (qpos != string::npos)
+        {
+            url = fullurl.substr(0, qpos);
+            query_string = fullurl.substr(qpos + 1);
+        }
+        else
+        {
+            url = fullurl;
+            query_string.clear();
+        }
+    }
+
+    // headers
+    content_len = 0;
+    for (size_t i = 1; i < lines.size(); ++i)
+    {
+        string line = lines[i];
+        // trim CR/WHITESPACE
+        while (!line.empty() && (line.back() == '\r' || line.back() == '\n'))
+            line.pop_back();
+        if (line.empty())
+            continue;
+        size_t colon = line.find(':');
+        if (colon == string::npos)
+            continue;
+        string name = tolower_copy(line.substr(0, colon));
+        string value = line.substr(colon + 1);
+        // 去除前后的空格
+        size_t p = 0;
+        while (p < value.size() && isspace((unsigned char)value[p]))
+            ++p;
+        if (p)
+            value.erase(0, p);
+        if (name == "content-length")
+        {
+            content_len = atoi(value.c_str());
+        }
+        
+        //拓展解析
+    }
+
+    // 如果是 GET 且有 query_string，则解析 query params
+    if (tolower_copy(method) == "get" && !query_string.empty())
+    {
+        parse_query_string_to_map(query_string);
+        auto it = param_map.find("username");
+        if (it != param_map.end())
+            username = it->second;
+        it = param_map.find("content");
+        if (it != param_map.end())
+            text = it->second;
+        it = param_map.find("type");
+        if (it != param_map.end())
+            type = atoi(it->second.c_str());
+    }
+}
+
+void Http::parse_body_if_ready()
+{
+    // buffer currently holds header+body (或只是 header if incomplete)
+    // 找到 header 与 body 的分界处
+    const char *hdr_sep = nullptr;
+    size_t pos = string::npos;
+    // 首先尝试 \r\n\r\n
+    pos = buffer.find("\r\n\r\n");
+    size_t sep_len = 4;
+    if (pos == string::npos)
+    {
+        // 回退尝试 \n\n
+        pos = buffer.find("\n\n");
+        sep_len = 2;
+    }
+    if (pos == string::npos)
+    {
+        // header 未完整
+        return;
+    }
+
+    string header_block = buffer.substr(0, pos);
+    parse_request_line_and_headers(header_block);
+
+    // body start
+    size_t body_start = pos + sep_len;
+    size_t available_body = buffer.size() > body_start ? buffer.size() - body_start : 0;
+
+    // 如果 content_len > 0，则确保 body 完整
+    if (content_len > 0)
+    {
+        if ((int)available_body < content_len)
+        {
+            // 需要更多数据
+            return;
+        }
+        std::string body = buffer.substr(body_start, content_len);
+        // 仅支持 application/x-www-form-urlencoded
+        parse_urlencoded_body(body);
+        // 可以在这里把 buffer 保留多余的数据（pipeline）或清空
+        // 这里选择清空 buffer（外部如果要 pipeline，请调整）
+        buffer.clear();
+    }
+    else
+    {
+        // GET 或无 body： nothing to parse for body
+        // 若 URL 中带 query_string，已经在 parse_request_line_and_headers 中解析
+        buffer.clear();
+    }
+}
+
+// parse_raw: incremental parsing
+int Http::parse_raw(const char *buf, int len)
+{
+    if (!buf || len <= 0)
+        return -1;
+    // 用buffer存储传入的数据
+    buffer.append(buf, buf + len);
+
+    // 判断 header 是否完整（存在 \r\n\r\n 或 \n\n）
+    size_t header_end = buffer.find("\r\n\r\n");
+    if (header_end == string::npos)
+        header_end = buffer.find("\n\n");
+
+    if (header_end == string::npos)
+    {
+        // header 未完整，继续等待更多数据
+        return 1;
+    }
+
+    // 先解析 header（并获得 content_len），再判断 body 是否完整
+    std::string header_block = buffer.substr(0, header_end);
+    parse_request_line_and_headers(header_block);
+
+    // 判断 body 是否完整
+    size_t body_start = header_end + ((buffer.find("\r\n\r\n") != string::npos) ? 4 : 2);
+    size_t available_body = buffer.size() > body_start ? buffer.size() - body_start : 0;
+    if (content_len > 0)
+    {
+        if ((int)available_body < content_len)
+        {
+            // 需要更多数据
+            return 1;
+        }
+    }
+    // 到这里 header + body（如果有）都在 buffer 中，执行解析
+    parse_body_if_ready();
     return 0;
 }
 
-//组装HTTP响应报文
-//msg:自定义传输的消息
-int Http::handler_msg()
+string Http::build_response(const char *uname, int type, const char *msg)
 {
-    RecvBuf();
-
-    int k = 0;
-    int i = 0;
-    GetMethod(i, k);
-    SkipSpace(i);
-    CheckMethod(i);
-    handleChoose();
-
-    close(sock);
-    return 0;
-}
-
-//这个body也是未组装的
-
-// 发送 HTTP 响应（传入 body）
-int Http::send_msg( char *uname ,int type , char *msg)
-{
+    if (!uname)
+        uname = "";
     if (!msg)
         msg = "";
-    char body[1024];
-    sprintf(body, "username=%s&type=%d&content=%s", uname, type, msg);
-
-    char header[512];
-    int body_len = (int)strlen(body);
-    int header_len = snprintf(header, sizeof(header),
-                              "HTTP/1.1 200 OK\r\n"
-                              "Content-Type: application/x-www-form-urlencoded; charset=utf-8\r\n"
-                              "Content-Length: %d\r\n"
-                              "Connection: close\r\n"
-                              "\r\n",
-                              body_len);
-
-    if (header_len < 0)
-        return -1;
-
-    if ((int)send(sock, header, header_len, 0) != header_len)
+    ostringstream body_ss;
+    // body 使用 application/x-www-form-urlencoded 格式
+    // 注意需要对 uname 和 msg 做 url-encoding，这里简单替换空格为 '+' 并不过度编码
+    auto urlencode_simple = [](const string &s) -> string
     {
-        // 发送 header 错误
-    }
-    if (body_len > 0)
-    {
-        if ((int)send(sock, body, body_len, 0) != body_len)
+        ostringstream o;
+        for (unsigned char c : s)
         {
-            // 发送 body 错误
+            if (isalnum(c) || c == '.' || c == '-' || c == '_' || c == '~')
+                o << c;
+            else if (c == ' ')
+                o << '+';
+            else
+            {
+                static const char *hex = "0123456789ABCDEF";
+                o << '%' << hex[c >> 4] << hex[c & 0xF];
+            }
         }
-    }
-    return 0;
+        return o.str();
+    };
+
+    body_ss << "username=" << urlencode_simple(uname)
+            << "&type=" << type
+            << "&content=" << urlencode_simple(msg);
+
+    string body = body_ss.str();
+    ostringstream header_ss;
+    header_ss << "HTTP/1.1 200 OK\r\n"
+              << "Content-Type: application/x-www-form-urlencoded; charset=utf-8\r\n"
+              << "Content-Length: " << body.size() << "\r\n"
+              << "Connection: close\r\n"
+              << "\r\n"
+              << body;
+    return header_ss.str();
 }
