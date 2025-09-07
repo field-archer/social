@@ -69,10 +69,30 @@ void Channel::HandleEvent()                     //处理事件
         HandleCloseEvent(fd_);
     }else if(Revent()&EPOLLIN)                  //读事件
     {
-        int TYPE_=-1;
-        std::string name_="";
-        std::string message_="";
-        HandleHttp(TYPE_,name_,message_);
+        if(isListen)
+        {
+            HandleReadEvent();
+            return ;
+        }
+
+
+        Http http;
+        http.reset();
+        char buffer[1024];
+        memset(buffer,0,sizeof(buffer));
+        int recvn = ::recv(fd_, buffer, sizeof(buffer), 0);
+        printf("收到:%s\n",buffer);
+        int rc = http.parse_raw(buffer, recvn);
+        if(rc!=0)
+        {
+            printf("解析http出错\n");
+            return ;
+        }
+        int TYPE_=http.type;
+        std::string name_=http.get_username();
+        std::string message_=http.get_text();
+        std::cout<<"username="<<name_<<",type="<<TYPE_<<",message="<<message_<<endl;
+
         if(TYPE_==LOGIN)
         {
             HandleLogInEvent(name_);            //用户登录
@@ -87,58 +107,6 @@ void Channel::HandleEvent()                     //处理事件
     {
         printf("发生其余事件：%d\n",Revent());
         HandleCloseEvent(fd_);
-    }
-}
-void Channel::HandleHttp(int& _TYPE,std::string& _name,std::string& _message)
-{
-    //TODO，
-    char buffer[4096];
-    ssize_t bytes_read = read(fd_, buffer, sizeof(buffer)-1);
-    if (bytes_read <= 0) {
-        _TYPE = -1;
-        return;
-    }
-    buffer[bytes_read] = '\0';
-
-    // 解析HTTP请求行
-    char method[32] = {0};
-    char url[1024] = {0};
-    sscanf(buffer, "%31s %1023s", method, url);
-
-    // 查找消息体开始位置
-    char* body_start = strstr(buffer, "\r\n\r\n");
-    if (!body_start) {
-        _TYPE = -1;
-        return;
-    }
-    body_start += 4;
-
-    // 解析查询参数或消息体
-    char* params = nullptr;
-    if (strcasecmp(method, "GET") == 0) {
-        params = strchr(url, '?');
-        if (params) *params++ = '\0';
-    } else if (strcasecmp(method, "POST") == 0) {
-        params = body_start;
-    }
-
-    // 提取参数
-    if (params) {
-        char* token = strtok(params, "&");
-        while (token) {
-            char* eq = strchr(token, '=');
-            if (eq) {
-                *eq = '\0';
-                if (strcmp(token, "type") == 0) {
-                    _TYPE = atoi(eq+1);
-                } else if (strcmp(token, "username") == 0) {
-                    _name = eq+1;
-                } else if (strcmp(token, "content") == 0) {
-                    _message = eq+1;
-                }
-            }
-            token = strtok(nullptr, "&");
-        }
     }
 }
 void Channel::SetHandleReadEvent(std::function<void()> _fun)            //设置处理读事件的回调函数
@@ -161,26 +129,14 @@ void Channel::SetHandleMessageEvent(std::function<void(std::string)> _fun)      
 {
     HandleMessageEvent=_fun;
 }
-void Channel::Send(std::string message)                                 //发送消息
+// // 发送示例
+// std::string resp = Http::build_response("alice", MESSAGE, "hello world");
+// send(client_sock, resp.data(), (int)resp.size(), 0);
+void Channel::Send(std::string name,std::string message)                                 //发送消息
 {
-    MessageToHttp(message);
-    int sendn=::send(fd_,message.data(),message.size(),0);
+    string tmpmessage=Http::build_response(name.c_str(),MESSAGE,message.c_str());
+    int sendn=::send(fd_,tmpmessage.data(),tmpmessage.size(),0);
 }
-void Channel::MessageToHttp(std::string& message)
-{
-    //TODO
-    std::stringstream http_response;
-    http_response << "HTTP/1.1 200 OK\r\n"
-                  << "Content-Type: text/plain\r\n"
-                  << "Content-Length: " << message.length() << "\r\n"
-                  << "Connection: close\r\n"
-                  << "\r\n"
-                  << message;
-    
-    message = http_response.str();
-}
-
-
 
 
 

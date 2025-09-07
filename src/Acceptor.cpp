@@ -15,6 +15,7 @@ Acceptor::Acceptor(std::string _ip,uint16_t _port,EventLoop* _eventLoop)
     servChannel=new Channel(servSocket->fd(),eventLoop_);   //服务端Channel
     servChannel->EnableReading();                           //注册读事件
     servChannel->SetHandleReadEvent(std::bind(&Acceptor::NewConnection,this));          //设置channle的读事件处理
+    servChannel->isListen=true;
 }
 Acceptor::~Acceptor()                                   
 {

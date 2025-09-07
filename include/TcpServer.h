@@ -23,7 +23,6 @@ public:
     void Start();                               //处理事件
  
     void NewConnection(Socket *clieSocket);     //处理新连接，将fd交给Connection，处理客户端ip和port
-    // void LogIn(int _fd,char *_name);            //用户登录，从usersUnLog转移至usersLogIn
     void LogOut(int _fd);                              //处理登出
     void Close(int _fd);                //根据fd关闭Connection，map中也删除
     void Message(Connection *_connection,std::string message);                             //处理用户消息

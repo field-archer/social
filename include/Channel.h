@@ -1,13 +1,14 @@
 #pragma once
+#include<iostream>
 #include<functional>
 #include<sys/socket.h>
 #include<unistd.h>
 #include <sstream>
-// #include"Http.h"
+#include"Http.h"
 #include"EventLoop.h"               //eventLoop和epoll均只有一个，用eventloop替代epoll，以便在tcpserver中使用eventLoop替代epoll
 class Epoll;
 class EventLoop;
-// class Http;
+class Http;
 
 #define LOGIN 1
 #define LOGOUT 2
@@ -21,10 +22,11 @@ private:
     uint32_t Tevent_;                       //关注的事件
     uint32_t Revent_;                       //实际发生的事件，需手动维护，便于事件处理
     bool inEpoll_=false;                    //是否在epoll_，需手动维护，用于区分update时的mod和add
-
 public:
     Channel(int _fd,EventLoop *_eventLoop); //构造函数
     ~Channel();                             //析构函数：fd
+
+    bool isListen=false;
 
     void HandleEvent();                                                 //处理事件
     void HandleHttp(int& _TYPE,std::string& _name,std::string& _message);  //处理http协议，TYPE：消息类型 _name：用户名 _message：消息正文 
@@ -37,8 +39,8 @@ public:
     //消息
     std::function<void(std::string)> HandleMessageEvent;                    //处理发送消息事件的回调函数，通知到TcpServer层
     void SetHandleMessageEvent(std::function<void(std::string)>);           //设置处理消息事件的回调函数
-    void Send(std::string message);                                         //发送消息
-    void MessageToHttp(std::string& message);                               //将消息转化成http格式
+    void Send(std::string name,std::string message);                                         //发送消息
+    // void MessageToHttp(std::string& message);                               //将消息转化成http格式
     //断开连接
     std::function<void(int)>HandleCloseEvent;                               //处理断开连接事件的回调函数，通知到TcpServer层
     void SetHandleCloseEvent(std::function<void(int)>);                     //设置处理断开连接的回调函数

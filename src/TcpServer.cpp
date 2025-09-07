@@ -27,15 +27,9 @@ void TcpServer::NewConnection(Socket *_clieSocket)  //Connection 两个Usermap
     newConnection->SetHandleLogOutEvent(std::bind(&TcpServer::LogOut,this,_clieSocket->fd()));                         //绑定登出函数
     newConnection->SetHandleMessageEvent(std::bind(&TcpServer::Message,this,newConnection,std::placeholders::_1));  //绑定消息处理函数
     newConnection->SetHandleCloseEvent(std::bind(&TcpServer::Close,this,_clieSocket->fd()));                        //绑定关闭连接的回调函数
-    // newConnection->SetCloseCB(std::bind(&TcpServer::DelConnection,this,_clieSocket->fd()));                 //绑定关闭连接函数
-    // newConnection->SetLogInCB(std::bind(&TcpServer::LogIn,this,_clieSocket->fd(),std::placeholders::_1));   //绑定登录函数
     
 }
-//用户登录
-// void TcpServer::LogIn(int _fd,char *_name)
-// {
-//     connections[_fd]->LogInCB(_name);
-// }
+
 void TcpServer::LogOut(int _fd)
 {
     printf("%d关闭连接\n",_fd);
@@ -52,11 +46,12 @@ void TcpServer::Close(int _fd)
 //处理用户消息
 void TcpServer::Message(Connection *_connection,std::string message)                   
 {
+    printf("发送消息了!\n");
     messages.push_back(message);
     for(auto& pair:connections)
     {
         auto& connection=pair.second;
-        if(connection==_connection)continue;
+        // if(connection==_connection)continue;
         connection->send(message);
     }
 }
