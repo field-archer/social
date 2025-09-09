@@ -20,21 +20,19 @@ private:
     Socket* clieSocket_;                        //客户端socket，暂时用Connection管理，实际Connection类不应该有Socket成员
     Buffer inputBuffer;                         //接收缓冲区
     Buffer outputBuffer;                        //发送缓冲区
-    std::function<void()> HandleLogOutEventCB;                      //处理登出事件的回调函数
-    std::function<void(std::string message)> HandleMessageEventCB;  //处理消息事件的回调函数
     std::function<void()> HandleCloseCB;                            //处理断开连接的回调函数
+    std::function<void(std::string _message)> HandleMessageCB;                             //处理读回调函数，通知至TcpServer，接收消息并析出消息正文
 public:
     Connection(int _fd,EventLoop *_eventLoop,Socket *_clieSocket);  //根据fd和eventLoop产生Channel
     ~Connection();                                                  //析构：clieChannel 
     
-    void HandleLogInEvent(std::string _name);                                               //处理用户登录的函数
-    void HandleLogOutEvent();                                                               //处理用户登出的函数
-    void SetHandleLogOutEvent(std::function<void()>);                                       //设置处理登出的回调函数
-    void HandleMessageEvent(std::string message);                                           //处理发送消息的函数
-    void SetHandleMessageEvent(std::function<void(std::string message)>);                   //设置发送消息的回调函数
+    void HandleReadEvent();                                                                 //调用读回调函数
+    void SetHandleMessageEvent(std::function<void(std::string _message)>);                  //设置读回调函数，TcpServer的处理读函数
     void HandleCloseEvent();                                                                //处理断开连接的回调函数
     void SetHandleCloseEvent(std::function<void()> _fun);                                   //设置断开连接的回调函数
+    void HandleWriteEvent();                                                                //处理写事件
 
     int fd();
-    void send(std::string message);    
+    void send(std::string message);                                                         //注册读事件，写入outputBuffer，实则不发送
+
 };

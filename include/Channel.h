@@ -4,15 +4,10 @@
 #include<sys/socket.h>
 #include<unistd.h>
 #include <sstream>
-#include"Http.h"
 #include"EventLoop.h"               //eventLoop和epoll均只有一个，用eventloop替代epoll，以便在tcpserver中使用eventLoop替代epoll
 class Epoll;
 class EventLoop;
-class Http;
 
-#define LOGIN 1
-#define LOGOUT 2
-#define MESSAGE 3
 
 class Channel
 {
@@ -26,24 +21,26 @@ public:
     Channel(int _fd,EventLoop *_eventLoop); //构造函数
     ~Channel();                             //析构函数：fd
 
-    bool isListen=false;
 
     void HandleEvent();                                                 //处理事件
-    void HandleHttp(int& _TYPE,std::string& _name,std::string& _message);  //处理http协议，TYPE：消息类型 _name：用户名 _message：消息正文 
-    //登录
-    std::function<void(std::string _name)>HandleLogInEvent;                 //处理用户登录事件的回调函数，通知到Connectioon层
-    void SetHandleLogInEvent(std::function<void(std::string _name)>);       //设置处理用户登录的回调函数
-    //登出
-    std::function<void()>HandleLogOutEvent;                                 //处理用户登出事件的回调函数，通知到TcpServer层
-    void SetHandleLogOutEvent(std::function<void()>);                       //设置处理用户登出的回调函数
-    //消息
-    std::function<void(std::string)> HandleMessageEvent;                    //处理发送消息事件的回调函数，通知到TcpServer层
-    void SetHandleMessageEvent(std::function<void(std::string)>);           //设置处理消息事件的回调函数
-    void Send(std::string name,std::string message);                                         //发送消息
+    // //登录
+    // std::function<void(std::string _name)>HandleLogInEvent;                 //处理用户登录事件的回调函数，通知到Connectioon层
+    // void SetHandleLogInEvent(std::function<void(std::string _name)>);       //设置处理用户登录的回调函数
+    // //登出
+    // std::function<void()>HandleLogOutEvent;                                 //处理用户登出事件的回调函数，通知到TcpServer层
+    // void SetHandleLogOutEvent(std::function<void()>);                       //设置处理用户登出的回调函数
+    // //消息
+    // std::function<void(std::string)> HandleMessageEvent;                    //处理发送消息事件的回调函数，通知到TcpServer层
+    // void SetHandleMessageEvent(std::function<void(std::string)>);           //设置处理消息事件的回调函数
+    // void Send(std::string name,std::string message);                                         //发送消息
     // void MessageToHttp(std::string& message);                               //将消息转化成http格式
     //断开连接
-    std::function<void(int)>HandleCloseEvent;                               //处理断开连接事件的回调函数，通知到TcpServer层
+    std::function<void(int)>HandleCloseEventCB;                               //处理断开连接事件的回调函数，通知到TcpServer层
     void SetHandleCloseEvent(std::function<void(int)>);                     //设置处理断开连接的回调函数
+    std::function<void()>HandleReadEventCB;                                   //读事件回调函数
+    void SetHandleReadEvent(std::function<void()>);                         //设置读回调函数
+    std::function<void()>HandleWriteEventCB;                                //写回调函数
+    void SetHandleWriteEvent(std::function<void()>);                        //设置写回调函数
 
 
     void SetRevent(uint32_t _event);        //设置发生的事件
@@ -52,10 +49,6 @@ public:
     void DisableReading();                  //注销读事件
     void EnableWriting();                   //注册写事件
     void DisableWriting();                  //注销写事件
-    std::function<void()>HandleReadEvent;                       //处理读事件的回调函数
-    std::function<void()>HandleWriteEvent;                      //处理可写事件
-    void SetHandleReadEvent(std::function<void()>);             //设置处理读事件的回调函数
-    void SetHandleWriteEvent(std::function<void()>);            //设置处理可写事件的回调函数
     void UseEt();                           //使用边缘触发
 
     bool inEpoll();                         //返回inEpoll

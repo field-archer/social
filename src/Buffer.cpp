@@ -24,6 +24,14 @@ void Buffer::Append(const char *data,size_t size)
 {
     buff_.append(data,size);
 }
+//头部+正文入buff_
+void Buffer::AppendWithHead(const char *data,size_t size)
+{
+    // int len=size;
+    uint32_t net_len=htonl(size);
+    buff_.append((char*)&net_len,4);
+    buff_.append(data,size);
+}
 void Buffer::erase(ssize_t pos,int len)
 {
     buff_.erase(pos,len);
