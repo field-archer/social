@@ -1,6 +1,6 @@
 include_directories(../include)
 
-set(source main.cpp TcpServer.cpp Acceptor.cpp EventLoop.cpp Epoll.cpp Channel.cpp Socket.cpp InetAddr.cpp Connection.cpp   Buffer.cpp)    
+set(source main.cpp TcpServer.cpp Acceptor.cpp EventLoop.cpp Epoll.cpp Channel.cpp Socket.cpp InetAddr.cpp Connection.cpp Buffer.cpp EchoTcpServer.cpp)    
 set(source2 client.cpp)
 
 add_executable(client ${source2})

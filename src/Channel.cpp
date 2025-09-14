@@ -69,10 +69,11 @@ void Channel::HandleEvent()                     //处理事件
         HandleCloseEventCB(fd_);
     }else if(Revent()&EPOLLIN)                  //读事件
     {
+        printf("读事件\n");
         HandleReadEventCB();
-
     }else if (Revent()&EPOLLOUT)                //可写
     {
+        printf("写事件\n");
         HandleWriteEventCB();
     }else                                        //其余事件一律关闭
     {

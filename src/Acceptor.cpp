@@ -35,6 +35,5 @@ void Acceptor::NewConnection()
     clieSocket->SetReuseAddr();                             //time_wait
     clieSocket->SetReusePort();                             //将群效应，意义不大
     clieSocket->SetTcpNoDelay();                            //小包延迟
-
     newConnectionCB(clieSocket);                            //将客户端socket传递至下游
 }

@@ -43,15 +43,16 @@ void Connection::HandleReadEvent()                                              
             inputBuffer.Append(buffer,recvn);
         }else if(recvn==-1&&(errno==EWOULDBLOCK||errno==EAGAIN))
         {
+            printf("接收完毕\n");
             //接收完毕
             uint32_t net_len;
             memcpy(&net_len,inputBuffer.data(),4);
             int len=ntohl(net_len);
             if(inputBuffer.size()<len+4)break;  //不足一份报文，需后续处理
             std::string message(inputBuffer.data()+4,len);
-            printf("接收到%s\n",message.c_str());
             inputBuffer.erase(0,len+4);
             HandleMessageCB(message);
+            
         }else if(recvn==-1&&errno==EINTR)
         {
             //信号终端，重试
@@ -85,5 +86,6 @@ void Connection::HandleWriteEvent()                                             
 void Connection::send(std::string message)                                             
 {
     outputBuffer.AppendWithHead(message.data(),message.size());     //写入outputBuffer
+    std::cout<<"outPutBuffer:"<<outputBuffer.buff_<<std::endl;
     clieChannel_->EnableWriting();
 }
