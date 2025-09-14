@@ -24,4 +24,11 @@ public:
     void NewConnection(Socket *clieSocket);     //处理新连接，将fd交给Connection，处理客户端ip和port
     void Close(int _fd);                        //根据fd关闭Connection，map中也删除
     void HandleMessage(Connection *connection,std::string _message);   //处理消息
+
+    std::function<void(Socket*)> NewConnectionCB;                        //新连接业务的回调函数
+    void SetNewConnectionCB(std::function<void(Socket*)>);              //设置新连接业务的回调函数
+    std::function<void(int)> CloseCB;                                   //关闭业务的回调函数
+    void SetCloseCB(std::function<void(int)>);                          //设置关闭业务的回调函数
+    std::function<void(Connection*,std::string)> MessageCB;              //关闭业务的回调函数
+    void SetMessageCB(std::function<void(Connection*,std::string)>);     //设置关闭业务的回调函数
 };

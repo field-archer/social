@@ -6,8 +6,8 @@
 class Buffer
 {
 private:
-    std::string buff_;
 public:
+std::string buff_;
     Buffer();
     ~Buffer();
     void Append(const char *data,size_t size);
