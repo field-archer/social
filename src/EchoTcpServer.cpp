@@ -1,6 +1,6 @@
 #include"EchoTcpServer.h"
 EchoTcpServer::EchoTcpServer(std::string _ip,uint16_t _port,int _eventLoopNum,int _workNum)
-                :tcpServer_(_ip,_port,_eventLoopNum),workThreadPool_(_workNum)                   //构造函数
+                :tcpServer_(_ip,_port,_eventLoopNum),workThreadPool_(_workNum,"工作线程")                   //构造函数
 {
     tcpServer_.SetNewConnectionCB(std::bind(&EchoTcpServer::NewConnection,this,std::placeholders::_1));//设置新连接业务回调函数  
     tcpServer_.SetCloseCB(std::bind(&EchoTcpServer::Close,this,std::placeholders::_1));              //设置关闭业务回调函数
@@ -27,10 +27,16 @@ void EchoTcpServer::HandleMessage(spConnection _connection,std::string _message)
 {
     //回显
     printf("接收到：%s\n",_message.c_str());
-    workThreadPool_.AddTask(std::bind(&EchoTcpServer::OnMessage,this,_connection,_message));
+    if(workThreadPool_.size()==0)
+    {
+        OnMessage(_connection,_message);
+    }else 
+    {
+        workThreadPool_.AddTask(std::bind(&EchoTcpServer::OnMessage,this,_connection,_message));
+    }
 }
 void EchoTcpServer::OnMessage(spConnection _connection,std::string _message)
 {
-    std::string tmpmessage="replay"+_message;
+    std::string tmpmessage="回复"+_message;
     _connection->send(tmpmessage);
 }

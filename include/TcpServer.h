@@ -19,7 +19,7 @@ private:
     std::unique_ptr<EventLoop> eventLoop_;                      //事件循环
     std::vector<std::unique_ptr<EventLoop>>subLoops;            //子线程事件循环，处理客户端通讯
     int threadNum_;                             //线程池大小
-    ThreadPool threadPool;                     //线程池
+    ThreadPool threadPool;                     //IO线程池
     Acceptor acceptor_;                        //用于接收新连接，产生socket
     std::map<int,spConnection>connections;       //map:fd-Connection管理生命周期
 public:

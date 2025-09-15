@@ -3,7 +3,7 @@
 TcpServer::TcpServer(std::string ip,uint16_t port,int _threadNum)
             :eventLoop_(new EventLoop()),
             threadNum_(_threadNum),
-            threadPool(threadNum_),
+            threadPool(threadNum_,"IO线程"),
             acceptor_(ip,port,eventLoop_)
 {
     acceptor_.SetNewConnectionCB(bind(&TcpServer::NewConnection,this,std::placeholders::_1));      //绑定fd传递函数

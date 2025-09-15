@@ -73,20 +73,20 @@ void Channel::HandleEvent()                     //处理事件
 {
     if(Revent()&EPOLLRDHUP)                     //关闭事件                           
     {
-        printf("关闭事件\n");
+        // printf("关闭事件\n");
         remove();
         HandleCloseEventCB(fd_);
     }else if(Revent()&EPOLLIN)                  //读事件
     {
-        printf("读事件\n");
+        // printf("读事件\n");
         HandleReadEventCB();
     }else if (Revent()&EPOLLOUT)                //可写
     {
-        printf("写事件\n");
+        // printf("写事件\n");
         HandleWriteEventCB();
     }else                                        //其余事件一律关闭
     {
-        printf("发生其余事件：%d\n",Revent());
+        // printf("发生其余事件：%d\n",Revent());
         remove();
         HandleCloseEventCB(fd_);
     }
