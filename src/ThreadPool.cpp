@@ -14,7 +14,7 @@ public:
     void AddTask(std::function<void()>);
 };
 */
-ThreadPool::ThreadPool(int _num)
+ThreadPool::ThreadPool(int _num):stop_(false)
 {
     for(int i=0;i<_num;i++)
     {
@@ -52,6 +52,7 @@ ThreadPool::~ThreadPool()
 }
 void ThreadPool::AddTask(std::function<void()> _fun)
 {
+    
     {           //锁作用域
         std::lock_guard<std::mutex> lock(mutex_);
         taskQueue_.push(_fun);

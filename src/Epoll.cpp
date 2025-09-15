@@ -32,6 +32,19 @@ void Epoll::UpdateChannel(Channel *_channel)            //更新Channel(mod或ad
         _channel->SetInEpoll();//设置inEpoll
     }
 }
+//清除Channel
+void Epoll::removeChannel(Channel *_channel)
+{
+    if(_channel->inEpoll())//已在epoll中，修改
+    {
+        if(epoll_ctl(epfd,EPOLL_CTL_DEL,_channel->fd(),0))
+        {
+            printf("文件%s的%d行的[%s]函数出错", __FILE__, __LINE__, __func__);
+            perror(":");
+            exit(-1);/////////////////////////////////////////////////////////////////////////////////////////////////exit
+        }
+    }
+}
 std::vector<Channel*>Epoll::loop(int time)              //等待事件发生，并将发生的事件转换成Channel*
 {
     std::vector<Channel*>re(0);

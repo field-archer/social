@@ -1,8 +1,6 @@
 #include"Channel.h"
-Channel::Channel(int _fd,EventLoop *_eventLoop) //构造函数
+Channel::Channel(int _fd,std::unique_ptr<EventLoop>&_eventLoop):fd_(_fd),eventLoop_(_eventLoop)
 {
-    fd_=_fd;
-    eventLoop_=_eventLoop;
 }
 Channel::~Channel()                             //析构函数
 {
@@ -35,6 +33,16 @@ void Channel::DisableWriting()
     Tevent_&=~EPOLLOUT;
     eventLoop_->UpdateChannel(this);
 }
+void Channel::DisableAll()                      //注销所有事件
+{
+    Tevent_&=0;
+    eventLoop_->UpdateChannel(this);
+}
+void Channel::remove()                          //从epoll和eventLoop中清楚Channel
+{
+    DisableAll();
+    eventLoop_->removeChannel(this);
+}
 void Channel::SetInEpoll()                      //设置inEpoll
 {
     inEpoll_=true;
@@ -66,6 +74,7 @@ void Channel::HandleEvent()                     //处理事件
     if(Revent()&EPOLLRDHUP)                     //关闭事件                           
     {
         printf("关闭事件\n");
+        remove();
         HandleCloseEventCB(fd_);
     }else if(Revent()&EPOLLIN)                  //读事件
     {
@@ -78,6 +87,7 @@ void Channel::HandleEvent()                     //处理事件
     }else                                        //其余事件一律关闭
     {
         printf("发生其余事件：%d\n",Revent());
+        remove();
         HandleCloseEventCB(fd_);
     }
 }

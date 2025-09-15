@@ -1,9 +1,10 @@
 #include"Connectio.h"
-Connection::Connection(int _fd,EventLoop *_eventLoop,Socket *_clieSocket)
+Connection::Connection(std::unique_ptr<EventLoop>& _eventLoop,std::unique_ptr<Socket> _clieSocket)
+            :eventLoop_(_eventLoop),
+            clieChannel_(new Channel(_clieSocket->fd(),eventLoop_)),
+            clieSocket_(std::move(_clieSocket)),
+            close_(false)
 {
-    eventLoop_=_eventLoop;                                                              //已有eventLoop
-    clieSocket_=_clieSocket;                                                            //管理本不该有的客户端Socekt
-    clieChannel_=new Channel(_fd,_eventLoop);                                           //新Channel
     clieChannel_->UseEt();                                                              //边缘触发
     clieChannel_->EnableReading();                                                      //注册可读
     clieChannel_->SetHandleReadEvent(std::bind(&Connection::HandleReadEvent,this));     //设置读事件处理
@@ -13,14 +14,15 @@ Connection::Connection(int _fd,EventLoop *_eventLoop,Socket *_clieSocket)
 
 Connection::~Connection()
 {
-    delete clieSocket_;                                                                 //析构本不该有的客户端Socekt
-    delete clieChannel_;                                                                //析构Channel
+    // delete clieSocket_;                                                                 //析构客户端Socekt
+    // delete clieChannel_;                                                                //析构Channel
 }
 void Connection::HandleCloseEvent()
 {
-    HandleCloseCB();
+    close_=true;
+    HandleCloseCB(fd());
 }
-void Connection::SetHandleCloseEvent(std::function<void()> _fun)
+void Connection::SetHandleCloseEvent(std::function<void(int)> _fun)
 {
     HandleCloseCB=_fun;
 }
@@ -43,7 +45,6 @@ void Connection::HandleReadEvent()                                              
             inputBuffer.Append(buffer,recvn);
         }else if(recvn==-1&&(errno==EWOULDBLOCK||errno==EAGAIN))
         {
-            printf("接收完毕\n");
             //接收完毕
             uint32_t net_len;
             memcpy(&net_len,inputBuffer.data(),4);
@@ -61,6 +62,8 @@ void Connection::HandleReadEvent()                                              
         {
             //对端关闭
             printf("%d已关闭\n",fd());
+            clieChannel_->remove();
+            HandleCloseEvent();
             break;
         }
     }
@@ -70,9 +73,6 @@ void Connection::SetHandleMessageEvent(std::function<void(std::string)> _fun)   
 {
     HandleMessageCB=_fun;
 }
-/*
-    ？？？？？？？？TODO！！！！！！！！！！！！！！！
-*/
 void Connection::HandleWriteEvent()                                                                //处理写事件
 {
     int sendn=::send(fd(),outputBuffer.data(),outputBuffer.size(),0);               //尽量一次写满缓冲区，负责出错
@@ -85,6 +85,7 @@ void Connection::HandleWriteEvent()                                             
 //实则不发送
 void Connection::send(std::string message)                                             
 {
+    if(close_){printf("已断开连接，不发送\n");return ;}
     outputBuffer.AppendWithHead(message.data(),message.size());     //写入outputBuffer
     std::cout<<"outPutBuffer:"<<outputBuffer.buff_<<std::endl;
     clieChannel_->EnableWriting();

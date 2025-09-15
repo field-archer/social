@@ -19,4 +19,5 @@ public:
 
     void UpdateChannel(Channel *_channel);              //更新Channel
     std::vector<Channel*>loop(int time);                //等待事件发生，并将发生的事件转换成Channel*
+    void removeChannel(Channel *_channel);              //清除Channel
 };

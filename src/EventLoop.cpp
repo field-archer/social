@@ -1,11 +1,9 @@
 #include"EventLoop.h"
-EventLoop::EventLoop()
+EventLoop::EventLoop():epoll_(new Epoll())
 {   
-    epoll_=new Epoll();                                 //新Epoll
 }
 EventLoop::~EventLoop()
 {
-    delete epoll_;                                      //delete epoll_
 }
 void EventLoop::run()                                   
 {
@@ -21,5 +19,10 @@ void EventLoop::run()
 void EventLoop::UpdateChannel(Channel *ch)              //调用Epoll的update
 {
     epoll_->UpdateChannel(ch);
+}
+//清楚Channel
+void EventLoop::removeChannel(Channel *ch)                    
+{
+    epoll_->removeChannel(ch);
 }
 
