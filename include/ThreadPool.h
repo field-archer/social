@@ -20,9 +20,11 @@ private:
     std::mutex mutex_;                              //锁
     std::condition_variable cv_;                    //条件变量
     std::atomic<bool> stop_;
+    std::mutex mmutex_;
 public:
     ThreadPool(int _num,std::string _name);
     ~ThreadPool();
     void AddTask(std::function<void()>);
+    void Stop();
     size_t size();
 };

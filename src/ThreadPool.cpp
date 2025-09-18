@@ -17,12 +17,14 @@ public:
 
 ThreadPool::ThreadPool(int _num,std::string _name):stop_(false),name_(_name)
 {
-    printf("创建包含%d个线程的线程池\n",_num);
+    printf("创建包含%d个%s的线程池\n",_num,name_.c_str());
+    fflush(stdout);
     for(int i=0;i<_num;i++)
     {
         threads_.emplace_back([this]
         {
-            printf("创建线程%ld\n",syscall(SYS_gettid));
+            printf("创建线程%ld,%s\n",syscall(SYS_gettid),name_.c_str());
+            fflush(stdout);
             while(stop_==false)
             {
                 std::function<void()>task;
@@ -31,11 +33,14 @@ ThreadPool::ThreadPool(int _num,std::string _name):stop_(false),name_(_name)
 
                     cv_.wait(lock,[this]
                     {
-                        return stop_==true||!taskQueue_.empty();    //有任务/关闭线程池 会唤醒线程
+                        return stop_||!taskQueue_.empty();    //有任务/关闭线程池 会唤醒线程
                     });
-                    printf("%ld,%s唤醒\n",syscall(SYS_gettid),name_.c_str());
+                    
 
-                    if(stop_==true&&taskQueue_.empty())break;       //stop且当前无任务退出，有任务则执行完当前任务再退出
+                    if(stop_==true&&taskQueue_.empty())
+                    {
+                        break;       //stop且当前无任务退出，有任务则执行完当前任务再退出
+                    }
 
                     task=std::move(taskQueue_.front());
                     taskQueue_.pop();
@@ -47,12 +52,7 @@ ThreadPool::ThreadPool(int _num,std::string _name):stop_(false),name_(_name)
 }
 ThreadPool::~ThreadPool()
 {
-    stop_=true;
-    cv_.notify_all();
-    for(auto& th:threads_)
-    {
-        th.join();
-    }
+    Stop();
 }
 void ThreadPool::AddTask(std::function<void()> _fun)
 {
@@ -66,4 +66,21 @@ void ThreadPool::AddTask(std::function<void()> _fun)
 size_t ThreadPool::size()
 {
     return threads_.size();
+}
+void ThreadPool::Stop()
+{
+    if(stop_)return ;
+    {
+        std::lock_guard<std::mutex> lock(mmutex_);
+        stop_=true;
+    }
+    fflush(stdout);
+    cv_.notify_all();
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    for(auto& th:threads_)
+    {
+        th.join();
+    }
+    printf("%ld,%s停止完毕\n",syscall(SYS_gettid),name_.c_str());
+    fflush(stdout);
 }

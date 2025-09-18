@@ -1,14 +1,16 @@
 #pragma once
 #include<string>
+#include<string.h>
 #include<cstdint>
 #include<arpa/inet.h>
 
 class Buffer
 {
 private:
+    std::string buff_;
+    const int sep_;             //分隔符：0---无，1---报文头部4字节表长度，2------\r\n
 public:
-std::string buff_;
-    Buffer();
+    Buffer(int _sep=1);
     ~Buffer();
     void Append(const char *data,size_t size);
     void AppendWithHead(const char *data,size_t size);  //头部+正文入buff_
@@ -16,4 +18,5 @@ std::string buff_;
     size_t size();
     const char *data();
     void clear();
+    bool getMessage(std::string& message);  //从buff_中得到消息正文
 };

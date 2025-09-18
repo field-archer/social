@@ -40,3 +40,11 @@ void EchoTcpServer::OnMessage(spConnection _connection,std::string _message)
     std::string tmpmessage="回复"+_message;
     _connection->send(tmpmessage);
 }
+
+void EchoTcpServer::Stop()
+{
+    workThreadPool_.Stop();
+    printf("工作线程停止\n");
+    tcpServer_.Stop();
+    printf("tcpServer停止\n");
+}

@@ -14,12 +14,13 @@ class Channel
 {
 private:
     int fd_;                                //fd由Channel管理
-    std::unique_ptr<EventLoop>& eventLoop_;                  //eventLoop不属于channel，无需析构
+    // std::unique_ptr<EventLoop>& eventLoop_;                  //eventLoop不属于channel，无需析构
+    EventLoop *eventLoop_;
     uint32_t Tevent_;                       //关注的事件
     uint32_t Revent_;                       //实际发生的事件，需手动维护，便于事件处理
     bool inEpoll_=false;                    //是否在epoll_，需手动维护，用于区分update时的mod和add
 public:
-    Channel(int _fd,std::unique_ptr<EventLoop>& _eventLoop); //构造函数
+    Channel(int _fd,EventLoop *_eventLoop); //构造函数
     ~Channel();                             //析构函数：fd
 
 

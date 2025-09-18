@@ -1,5 +1,5 @@
 #include"Connectio.h"
-Connection::Connection(std::unique_ptr<EventLoop>& _eventLoop,std::unique_ptr<Socket> _clieSocket)
+Connection::Connection(EventLoop* _eventLoop,std::unique_ptr<Socket> _clieSocket)
             :eventLoop_(_eventLoop),
             clieChannel_(new Channel(_clieSocket->fd(),eventLoop_)),
             clieSocket_(std::move(_clieSocket)),
@@ -10,12 +10,12 @@ Connection::Connection(std::unique_ptr<EventLoop>& _eventLoop,std::unique_ptr<So
     clieChannel_->SetHandleReadEvent(std::bind(&Connection::HandleReadEvent,this));     //设置读事件处理
     clieChannel_->SetHandleWriteEvent(std::bind(&Connection::HandleWriteEvent,this));   //设置写事件处理
     clieChannel_->SetHandleCloseEvent(std::bind(&Connection::HandleCloseEvent,this));   //绑定关闭连接处理
+
 }
 
 Connection::~Connection()
 {
-    // delete clieSocket_;                                                                 //析构客户端Socekt
-    // delete clieChannel_;                                                                //析构Channel
+    printf("已析构\n");
 }
 void Connection::HandleCloseEvent()
 {
@@ -45,15 +45,18 @@ void Connection::HandleReadEvent()                                              
             inputBuffer.Append(buffer,recvn);
         }else if(recvn==-1&&(errno==EWOULDBLOCK||errno==EAGAIN))
         {
-            //接收完毕
-            uint32_t net_len;
-            memcpy(&net_len,inputBuffer.data(),4);
-            int len=ntohl(net_len);
-            if(inputBuffer.size()<len+4)break;  //不足一份报文，需后续处理
-            std::string message(inputBuffer.data()+4,len);
-            inputBuffer.erase(0,len+4);
-            HandleMessageCB(message);
-            
+            // //接收完毕
+            // uint32_t net_len;
+            // memcpy(&net_len,inputBuffer.data(),4);
+            // int len=ntohl(net_len);
+            // if(inputBuffer.size()<len+4)break;  //不足一份报文，需后续处理
+            // std::string message(inputBuffer.data()+4,len);
+            // inputBuffer.erase(0,len+4);
+            std::string message;
+            if(inputBuffer.getMessage(message)==false)break;
+            lastTime_=TimeStamp::now();
+            std::cout<<"发送报文时为"<<lastTime_.ToString()<<std::endl;
+            HandleMessageCB(shared_from_this(),message);
         }else if(recvn==-1&&errno==EINTR)
         {
             //信号终端，重试
@@ -69,7 +72,7 @@ void Connection::HandleReadEvent()                                              
     }
     
 }
-void Connection::SetHandleMessageEvent(std::function<void(std::string)> _fun)                                         //设置读回调函数，TcpServer的处理读函数
+void Connection::SetHandleMessageEvent(std::function<void(spConnection,std::string)> _fun)                                         //设置读回调函数，TcpServer的处理读函数
 {
     HandleMessageCB=_fun;
 }
@@ -83,10 +86,30 @@ void Connection::HandleWriteEvent()                                             
 //注册读事件
 //写入outputBuffer
 //实则不发送
-void Connection::send(std::string message)                                             
+void Connection::send(std::string _message)                                             
 {
     if(close_){printf("已断开连接，不发送\n");return ;}
-    outputBuffer.AppendWithHead(message.data(),message.size());     //写入outputBuffer
-    std::cout<<"outPutBuffer:"<<outputBuffer.buff_<<std::endl;
+    std::shared_ptr<std::string>message=std::make_shared<std::string>(_message);
+    if(eventLoop_->isLoopThread())
+    {
+        printf("已在IO线程中\n");
+        sendInIOThread(message);
+    }else 
+    {
+        printf("不在IO线程中\n");
+        eventLoop_->addTaskLoop(std::bind(&Connection::sendInIOThread,this,message));
+    }
+    
+}
+void Connection::sendInIOThread(std::shared_ptr<std::string>message)                                                                  //在IO线程（事件循环线程）中发送
+{
+    outputBuffer.AppendWithHead(message->data(),message->size());     //写入outputBuffer
     clieChannel_->EnableWriting();
 }
+
+
+bool Connection::timeOut(time_t _now,int sec)//传入现在事件和秒数，判断是否超时
+{
+    return _now-lastTime_.ToInt()>sec;
+}
+

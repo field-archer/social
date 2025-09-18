@@ -1,19 +1,28 @@
-// #include"TcpServer.h"
 #include"EchoTcpServer.h"
+#include<signal.h>
 /*
-后续可能需要发生改动的地方：
+逆天IO线程池，notify_all，没一个醒的，还能秒过join
 */
 
+EchoTcpServer *echoTcpServer;
+void Stop(int sig)
+{
+    printf("收到信号%d\n",sig);
+    echoTcpServer->Stop();
+    printf("echoTcpServer已停止\n");
 
-/*
-还需要做：
-*/
+    printf("资源已释放");
+    delete echoTcpServer;
+    exit(0);
+}
+
 
 int main()
 {
-    // TcpServer tcpServer("192.168.232.135",8080);
-    // tcpServer.Start();
-    EchoTcpServer echoTcpServer("192.168.109.42",8080,10,4);
-    echoTcpServer.Start();
+    signal(SIGINT,Stop);
+    signal(SIGTERM,Stop);
+
+    echoTcpServer=new EchoTcpServer("192.168.109.42",8080);
+    echoTcpServer->Start();
     return 0;
 }

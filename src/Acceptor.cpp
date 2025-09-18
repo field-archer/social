@@ -1,8 +1,7 @@
 #include"Acceptor.h"
-Acceptor::Acceptor(std::string _ip,uint16_t _port,std::unique_ptr<EventLoop>& _eventLoop)
+Acceptor::Acceptor(std::string _ip,uint16_t _port,EventLoop* _eventLoop)
                 :eventLoop_(_eventLoop),servSocket(_ip,_port),servChannel(servSocket.fd(),eventLoop_)
 {
-    // servSocket=new Socket(_ip,_port);                       //初始化服务端socket
     servSocket.SetNonBlock();                              //设置非阻塞套接字
     servSocket.SetReuseAddr();                             //惊群效应
     servSocket.SetReusePort();                             //time_wait
@@ -12,7 +11,6 @@ Acceptor::Acceptor(std::string _ip,uint16_t _port,std::unique_ptr<EventLoop>& _e
     servSocket.bind(InetAddr(_ip,_port));                  //绑定
     servSocket.listen(128);                                //监听（128）
 
-    // servChannel=new Channel(servSocket.fd(),eventLoop_);   //服务端Channel
     servChannel.EnableReading();                           //注册读事件
     servChannel.SetHandleReadEvent(std::bind(&Acceptor::NewConnection,this));          //设置channle的读事件处理
 }
@@ -34,5 +32,5 @@ void Acceptor::NewConnection()
     clieSocket->SetReuseAddr();                             //time_wait
     clieSocket->SetReusePort();                             //将群效应，意义不大
     clieSocket->SetTcpNoDelay();                            //小包延迟
-    newConnectionCB(std::move(clieSocket));                            //将客户端socket传递至下游
+    newConnectionCB(std::move(clieSocket));                 //将客户端socket传递至下游
 }

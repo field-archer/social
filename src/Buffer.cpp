@@ -12,7 +12,7 @@ public:
     void clear();
 };
 */
-Buffer::Buffer()
+Buffer::Buffer(int _sep):sep_(_sep)
 {
 
 }
@@ -27,10 +27,18 @@ void Buffer::Append(const char *data,size_t size)
 //头部+正文入buff_
 void Buffer::AppendWithHead(const char *data,size_t size)
 {
-    // int len=size;
-    uint32_t net_len=htonl(size);
-    buff_.append((char*)&net_len,4);
-    buff_.append(data,size);
+    if(sep_==0)
+    {
+        buff_.append(data,size);
+    }else if(sep_==1)
+    {
+        uint32_t net_len=htonl(size);
+        buff_.append((char*)&net_len,4);
+        buff_.append(data,size);
+    }else if(sep_==2)
+    {
+        //\r\n格式先不写
+    }
 }
 void Buffer::erase(ssize_t pos,int len)
 {
@@ -47,4 +55,29 @@ const char* Buffer::data()
 void Buffer::clear()
 {
     buff_.clear();
+}
+//从buff_中得到消息正文
+bool Buffer::getMessage(std::string& _message)
+{
+    if(buff_.empty())return false;
+    if(sep_==0)
+    {
+        _message=buff_;
+        buff_.clear();
+    }else if(sep_==1)
+    {
+        //接收完毕
+        uint32_t net_len;
+        memcpy(&net_len,buff_.data(),4);
+        int len=ntohl(net_len);
+        if(buff_.size()<len+4)return false;  //不足一份报文，需后续处理
+        _message.append(buff_.data()+4,len);
+        // std::string message(buff_.data()+4,len);
+        buff_.erase(0,len+4);
+        
+    }else if(sep_==2)
+    {
+
+    }
+    return true;
 }

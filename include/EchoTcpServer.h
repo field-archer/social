@@ -21,4 +21,6 @@ public:
     void Close(int _fd);                                                                //根据fd关闭Connection，map中也删除
     void HandleMessage(spConnection _connection,std::string _message);                    //处理消息
     void OnMessage(spConnection _connection,std::string _message);                                               //计算
+
+    void Stop();
 };

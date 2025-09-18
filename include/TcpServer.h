@@ -21,6 +21,7 @@ private:
     int threadNum_;                             //线程池大小
     ThreadPool threadPool;                     //IO线程池
     Acceptor acceptor_;                        //用于接收新连接，产生socket
+    std::mutex mutex_;
     std::map<int,spConnection>connections;       //map:fd-Connection管理生命周期
 public:
     TcpServer(std::string _ip,uint16_t _port,int _threadNum=5);  //构造函数
@@ -38,4 +39,7 @@ public:
     void SetCloseCB(std::function<void(int)>);                          //设置关闭业务的回调函数
     std::function<void(spConnection,std::string)> MessageCB;              //关闭业务的回调函数
     void SetMessageCB(std::function<void(spConnection,std::string)>);     //设置关闭业务的回调函数
+
+    void ConnectionTimeOut(int _fd);                                    //清理超时的连接
+    void Stop();
 };

@@ -1,5 +1,5 @@
 #include"Channel.h"
-Channel::Channel(int _fd,std::unique_ptr<EventLoop>&_eventLoop):fd_(_fd),eventLoop_(_eventLoop)
+Channel::Channel(int _fd,EventLoop *_eventLoop):fd_(_fd),eventLoop_(_eventLoop)
 {
 }
 Channel::~Channel()                             //析构函数
