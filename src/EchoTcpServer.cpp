@@ -2,32 +2,35 @@
 EchoTcpServer::EchoTcpServer(std::string _ip,uint16_t _port,int _eventLoopNum,int _workNum)
                 :tcpServer_(_ip,_port,_eventLoopNum),workThreadPool_(_workNum,"工作线程")                   //构造函数
 {
-    tcpServer_.SetNewConnectionCB(std::bind(&EchoTcpServer::NewConnection,this,std::placeholders::_1));//设置新连接业务回调函数  
-    tcpServer_.SetCloseCB(std::bind(&EchoTcpServer::Close,this,std::placeholders::_1));              //设置关闭业务回调函数
-    tcpServer_.SetMessageCB(std::bind(&EchoTcpServer::HandleMessage,this,std::placeholders::_1,std::placeholders::_2));
-
+    tcpServer_.SetNewConnectionCB(std::bind(&EchoTcpServer::NewConnection,this,std::placeholders::_1));                 //设置新连接业务回调函数  
+    tcpServer_.SetCloseCB(std::bind(&EchoTcpServer::Close,this,std::placeholders::_1));                                 //设置关闭业务回调函数
+    tcpServer_.SetMessageCB(std::bind(&EchoTcpServer::HandleMessage,this,std::placeholders::_1,std::placeholders::_2)); //设置消息处理函数
 }                                                                                                  
-EchoTcpServer::~EchoTcpServer()                                                                     //析构函数
+//析构函数
+EchoTcpServer::~EchoTcpServer()                                                                     
 {
 
 }
-void EchoTcpServer::Start()                                                                         //处理事件
+void EchoTcpServer::Start()                                                                         
 {
     tcpServer_.Start();
 }
-void EchoTcpServer::NewConnection(Socket *clieSocket)                                               //处理新连接，将fd交给Connection，处理客户端ip和port
+//处理新连接业务，仅显示信息
+void EchoTcpServer::NewConnection(Socket *clieSocket)                                               
 {
     printf("%d（%s:%d）已加入连接\n",clieSocket->fd(),clieSocket->ip().c_str(),clieSocket->port());
 }
-void EchoTcpServer::Close(int _fd)                                                                  //根据fd关闭Connection，map中也删除
+//关闭业务，仅显示信息
+void EchoTcpServer::Close(int _fd)                                                                
 {
     printf("%d关闭连接\n",_fd);
 }
-void EchoTcpServer::HandleMessage(spConnection _connection,std::string _message)                      //处理消息
+//处理消息正文，在IO线程中发送
+void EchoTcpServer::HandleMessage(spConnection _connection,std::string _message)                 
 {
     //回显
     printf("接收到：%s\n",_message.c_str());
-    if(workThreadPool_.size()==0)
+    if(workThreadPool_.size()==0)//无工作线程
     {
         OnMessage(_connection,_message);
     }else 
@@ -44,7 +47,5 @@ void EchoTcpServer::OnMessage(spConnection _connection,std::string _message)
 void EchoTcpServer::Stop()
 {
     workThreadPool_.Stop();
-    printf("工作线程停止\n");
     tcpServer_.Stop();
-    printf("tcpServer停止\n");
 }

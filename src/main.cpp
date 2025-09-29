@@ -9,10 +9,9 @@ void Stop(int sig)
 {
     printf("收到信号%d\n",sig);
     echoTcpServer->Stop();
-    printf("echoTcpServer已停止\n");
 
-    printf("资源已释放");
     delete echoTcpServer;
+    printf("已安全退出\n");
     exit(0);
 }
 
