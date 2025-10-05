@@ -17,14 +17,10 @@ public:
 
 ThreadPool::ThreadPool(int _num,std::string _name):stop_(false),name_(_name)
 {
-    printf("创建包含%d个%s的线程池\n",_num,name_.c_str());
-    fflush(stdout);
     for(int i=0;i<_num;i++)
     {
         threads_.emplace_back([this]
         {
-            printf("创建线程%ld,%s\n",syscall(SYS_gettid),name_.c_str());
-            fflush(stdout);
             while(stop_==false)
             {
                 std::function<void()>task;
@@ -74,13 +70,10 @@ void ThreadPool::Stop()
         std::lock_guard<std::mutex> lock(mmutex_);
         stop_=true;
     }
-    fflush(stdout);
     cv_.notify_all();
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     for(auto& th:threads_)
     {
         th.join();
     }
-    printf("%ld,%s停止完毕\n",syscall(SYS_gettid),name_.c_str());
-    fflush(stdout);
 }

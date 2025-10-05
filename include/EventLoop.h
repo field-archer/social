@@ -2,7 +2,7 @@
 #include<vector>
 #include<map>
 #include<memory>
-#include<queue>
+#include<queue> 
 #include<pthread.h>
 #include<unistd.h>
 #include<sys/syscall.h>
@@ -21,8 +21,8 @@ using spConnection=std::shared_ptr<Connection>;
 class EventLoop
 {
 private:
-    int timeval_;
-    int timeout_;
+    int timeval_;                                                       //定时器周期
+    int timeout_;                                                       //超时界限，每隔timeval_处理超过timeout_无信息交换的连接
     std::unique_ptr<Epoll> epoll_;                                      //生命周期和EventLoop一样，析构
     pid_t threadID_;                                                    //线程ID
     std::mutex mutex_;
@@ -30,14 +30,14 @@ private:
     std::unique_ptr<Channel> wakeChannel_;
     std::queue<std::function<void()>> taskQueue_;
     int tfd_;
-    std::unique_ptr<Channel> timeChannel_;
-    bool mainLoop_;
-    std::map<int,spConnection> connections_;
-    std::function<void(int)> timeOutCB;
+    std::unique_ptr<Channel> timeChannel_;                              //定时器Channel
+    bool mainLoop_;                                                     //是否是主事件循环（仅受理新连接）
+    std::map<int,spConnection> connections_;                            //存储该事件循环的连接（仅子EventLoop有）
+    std::function<void(int)> timeOutCB;                                 //处理超时的回调函数
     std::mutex mmutex_;
     std::atomic<bool> stop_;
 public:
-    EventLoop(bool _mainLoop,int _timeval=30,int _timeut=80);                          //构造函数
+    EventLoop(bool _mainLoop,int _timeval=30,int _timeut=300);                          //构造函数
     ~EventLoop();                                       //析构函数：epoll_
     
     void run();                                         //事件循环
@@ -56,4 +56,6 @@ public:
     void SetTimeOutCB(std::function<void(int)>);
 
     void Stop();
+
+    void DelConnection(int fd);                         //删除map中fd对应Connection
 };

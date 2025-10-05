@@ -30,13 +30,13 @@ private:
     std::unique_ptr<Socket> clieSocket_;                        //客户端socket，暂时用Connection管理，实际Connection类不应该有Socket成员
     Buffer inputBuffer;                         //接收缓冲区
     Buffer outputBuffer;                        //发送缓冲区
-    std::function<void(int)> HandleCloseCB;                            //处理断开连接的回调函数
-    std::function<void(spConnection,std::string _message)> HandleMessageCB;                             //处理读回调函数，通知至TcpServer，接收消息并析出消息正文
-    std::atomic<bool> close_;
-    TimeStamp lastTime_;
+    std::function<void(int)> HandleCloseCB;                     //处理断开连接的回调函数
+    std::function<void(spConnection,std::string _message)> HandleMessageCB;//处理读回调函数，通知至TcpServer，接收消息并析出消息正文
+    std::atomic<bool> close_;                                   //连接是否关闭
+    TimeStamp lastTime_;                                        //上次发送消息时间戳
 public:
     Connection(EventLoop* _eventLoop,std::unique_ptr<Socket> _clieSocket);  //根据fd和eventLoop产生Channel
-    ~Connection();                                                  //析构：clieChannel 
+    ~Connection();                                              //析构：clieChannel 
     
     void HandleReadEvent();                                                                 //调用读回调函数
     void SetHandleMessageEvent(std::function<void(spConnection,std::string _message)>);                  //设置读回调函数，TcpServer的处理读函数

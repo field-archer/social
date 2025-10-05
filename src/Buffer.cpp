@@ -59,7 +59,7 @@ void Buffer::clear()
 //从buff_中得到消息正文
 bool Buffer::getMessage(std::string& _message)
 {
-    if(buff_.empty())return false;
+    if(buff_.empty()){printf("buff为空\n");return false;}
     if(sep_==0)
     {
         _message=buff_;
@@ -70,7 +70,7 @@ bool Buffer::getMessage(std::string& _message)
         uint32_t net_len;
         memcpy(&net_len,buff_.data(),4);
         int len=ntohl(net_len);
-        if(buff_.size()<len+4)return false;  //不足一份报文，需后续处理
+        if(buff_.size()<len+4){printf("报文长度不够\n");return false;}  //不足一份报文，需后续处理
         _message.append(buff_.data()+4,len);
         // std::string message(buff_.data()+4,len);
         buff_.erase(0,len+4);

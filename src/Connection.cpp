@@ -15,12 +15,12 @@ Connection::Connection(EventLoop* _eventLoop,std::unique_ptr<Socket> _clieSocket
 
 Connection::~Connection()
 {
-    printf("已析构\n");
 }
 void Connection::HandleCloseEvent()
 {
     close_=true;
-    HandleCloseCB(fd());
+    eventLoop_->DelConnection(fd());//在EventLoop的map中删除connection
+    HandleCloseCB(fd());//实际TcpServer移除map对应connection，通知httpServer
 }
 void Connection::SetHandleCloseEvent(std::function<void(int)> _fun)
 {
@@ -40,33 +40,22 @@ void Connection::HandleReadEvent()                                              
     {
         memset(buffer,0,sizeof(buffer));
         int recvn=::recv(fd(),buffer,maxsize,0);
-        if(recvn>0)
+        if(recvn>0)//继续接收
         {
             inputBuffer.Append(buffer,recvn);
-        }else if(recvn==-1&&(errno==EWOULDBLOCK||errno==EAGAIN))
+        }else if(recvn==-1&&(errno==EWOULDBLOCK||errno==EAGAIN))//接收完毕
         {
-            // //接收完毕
-            // uint32_t net_len;
-            // memcpy(&net_len,inputBuffer.data(),4);
-            // int len=ntohl(net_len);
-            // if(inputBuffer.size()<len+4)break;  //不足一份报文，需后续处理
-            // std::string message(inputBuffer.data()+4,len);
-            // inputBuffer.erase(0,len+4);
             std::string message;
             if(inputBuffer.getMessage(message)==false)break;
-            lastTime_=TimeStamp::now();
-            std::cout<<"发送报文时为"<<lastTime_.ToString()<<std::endl;
+            lastTime_=TimeStamp::now();//记录上次传输信息时间戳
             HandleMessageCB(shared_from_this(),message);
-        }else if(recvn==-1&&errno==EINTR)
+        }else if(recvn==-1&&errno==EINTR)//信号中断，重试
         {
-            //信号终端，重试
             continue;
-        }else if(recvn==0)
+        }else if(recvn==0)//对端关闭
         {
-            //对端关闭
-            printf("%d已关闭\n",fd());
             clieChannel_->remove();
-            HandleCloseEvent();
+            clieChannel_->HandleCloseEventCB(fd());
             break;
         }
     }
@@ -92,11 +81,9 @@ void Connection::send(std::string _message)
     std::shared_ptr<std::string>message=std::make_shared<std::string>(_message);
     if(eventLoop_->isLoopThread())
     {
-        printf("已在IO线程中\n");
         sendInIOThread(message);
     }else 
     {
-        printf("不在IO线程中\n");
         eventLoop_->addTaskLoop(std::bind(&Connection::sendInIOThread,this,message));
     }
     
@@ -108,8 +95,9 @@ void Connection::sendInIOThread(std::shared_ptr<std::string>message)            
 }
 
 
-bool Connection::timeOut(time_t _now,int sec)//传入现在事件和秒数，判断是否超时
+bool Connection::timeOut(time_t _now,int sec)//传入现在时间和秒数，判断是否超时
 {
     return _now-lastTime_.ToInt()>sec;
 }
+
 
