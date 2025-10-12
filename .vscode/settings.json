@@ -56,7 +56,21 @@
         "typeinfo": "cpp",
         "cinttypes": "cpp",
         "variant": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "bitset": "cpp",
+        "charconv": "cpp",
+        "chrono": "cpp",
+        "forward_list": "cpp",
+        "list": "cpp",
+        "set": "cpp",
+        "format": "cpp",
+        "span": "cpp",
+        "any": "cpp",
+        "codecvt": "cpp",
+        "ranges": "cpp",
+        "valarray": "cpp",
+        "source_location": "cpp",
+        "shared_mutex": "cpp"
     },
     "C_Cpp.errorSquiggles": "enabled"
 }

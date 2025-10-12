@@ -7,14 +7,15 @@ HttpConnection::~HttpConnection()
 {
     
 }
-void HttpConnection::send(HttpResponse* _reponse)
+void HttpConnection::send(HttpResponse& _reponse)
 {
-    std::string _message="HTTP/1.1 "+std::to_string(_reponse->GetStatusCode_())+" "+_reponse->GetstatusMessage()+"\r\n"
-                        +_reponse->GetHeader()+"\r\n"+_reponse->GetBody();
+    
+    std::string _message="HTTP/1.1 "+std::to_string(_reponse.GetStatusCode_())+" "+_reponse.GetstatusMessage()+"\r\n"
+                        +_reponse.GetAllHeader()+"\r\n"+_reponse.GetAllBody();
 
     uint32_t len = htonl(static_cast<uint32_t>(_message.size()));
     // _message=std::to_string(len)+_message;
-    printf("要发送的消息:%s\n",_message.c_str());
+    // printf("要发送的消息:%s\n",_message.c_str());
     connection_->send(_message);
 }
  

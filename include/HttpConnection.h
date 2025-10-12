@@ -9,8 +9,9 @@ class HttpConnection
 private:
     Connection* connection_;
 public:
+    
     HttpConnection(Connection* _connection);
     ~HttpConnection();
 
-    void send(HttpResponse* reponse);
+    void send(HttpResponse& reponse);
 };

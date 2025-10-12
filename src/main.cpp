@@ -1,25 +1,24 @@
-#include"HttpServer.h"
+// #include"HttpServer.h"
+#include"MainServer.h"
 #include<signal.h>
+
 /*
-大问题：
-// 1.前缀4字节
-// 2.清除超时客户端
-// 3.换教室
-6.客户端关闭后对应连接还会超时
-// 4.拉肚子
-// 5.困
+http服务url的根路径是/home/aaa/Codes/HttpServer/root
+下一步：
+加user,UserDAO,UserServices
+下一步：
+UserDAO Create User
 */
 
-// EchoTcpServer *echoTcpServer;
-HttpServer *httpServer;
+// HttpServer *httpServer;
+MainServer *mainServer;
+
 void Stop(int sig)
 {
     printf("收到信号%d\n",sig);
-    // echoTcpServer->Stop();
-    httpServer->Stop();
-    delete httpServer;
+    mainServer->Stop();
+    delete mainServer;
 
-    // delete echoTcpServer;
     printf("已安全退出\n");
     exit(0);
 }
@@ -29,9 +28,7 @@ int main()
 {
     signal(SIGINT,Stop);
     signal(SIGTERM,Stop);
-    httpServer=new HttpServer("127.0.0.1",8080);
-    httpServer->Start();
-    // echoTcpServer=new EchoTcpServer("192.168.109.42",8080);
-    // echoTcpServer->Start();
+    mainServer=new MainServer("192.168.232.12",8080,2,2,33060,"aaa","1234qwer","test",10,3,30,300);
+    mainServer->Start();
     return 0;
 }

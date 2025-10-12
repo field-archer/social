@@ -71,7 +71,6 @@ void ThreadPool::Stop()
         stop_=true;
     }
     cv_.notify_all();
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     for(auto& th:threads_)
     {
         th.join();

@@ -9,7 +9,7 @@ TcpServer::TcpServer(std::string ip,uint16_t port,int _threadNum)
     acceptor_.SetNewConnectionCB(bind(&TcpServer::NewConnection,this,std::placeholders::_1));      //绑定fd传递函数
     for(int i=0;i<_threadNum;i++)
     {
-        subLoops.emplace_back(new EventLoop(false,3,9));//false表非主事件循环；子时间循环超时采取默认情况，每隔30s检查有无超过300s无信息交换的连接
+        subLoops.emplace_back(new EventLoop(false,30,300));//false表非主事件循环；子事件循环每隔30s检查有无超过300s无信息交换的连接
         subLoops[i]->SetTimeOutCB(std::bind(&TcpServer::ConnectionTimeOut,this,std::placeholders::_1));
         IOthreadPool.AddTask(std::bind(&EventLoop::run,subLoops[i].get()));           //子事件循环运行在IO线程中
     }

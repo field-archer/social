@@ -11,6 +11,7 @@ Epoll::~Epoll()                                         //析构函数
 void Epoll::UpdateChannel(Channel *_channel)            //更新Channel(mod或add)
 {
     epoll_event tmpEv;
+    memset(&tmpEv, 0, sizeof(tmpEv));
     tmpEv.data.ptr=_channel;
     tmpEv.events=_channel->Tevent();
     if(_channel->inEpoll())//已在epoll中，修改
@@ -32,6 +33,7 @@ void Epoll::UpdateChannel(Channel *_channel)            //更新Channel(mod或ad
         _channel->SetInEpoll();//设置inEpoll
     }
 }
+
 //清除Channel
 void Epoll::removeChannel(Channel *_channel)
 {

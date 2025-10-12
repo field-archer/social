@@ -55,16 +55,14 @@ public:
 
         // 接收响应长度前缀
         uint32_t response_len_net;
-        // char len_buf[4];
         int bytes_read = recv(sock, &response_len_net, 4, 0);
         if (bytes_read != 4) {
             return "Failed to read length prefix";
         }
-        // memcpy(&response_len_net, len_buf, 4);
         uint32_t response_len = ntohl(response_len_net);
 
         // 接收响应主体
-        printf("接收到的长度为%d\n",response_len);
+        printf("接收到的长度为%d\n", response_len);
         std::string response(response_len, '\0');
         bytes_read = recv(sock, &response[0], response_len, 0);
         if (bytes_read != static_cast<int>(response_len)) {
@@ -77,20 +75,28 @@ public:
 
 int main() {
     try {
-        HttpClient client("127.0.0.1", 8080);
+        HttpClient client("192.168.29.42", 8080);
         
         if (!client.connect()) {
             std::cerr << "Connection failed" << std::endl;
             return 1;
         }
 
+        // 获取用户输入的消息体
+        std::string message_body;
+        std::cout << "请输入消息体内容: ";
+        std::getline(std::cin, message_body);
+
         // 构造HTTP请求
         std::string http_request = 
-            "GET / HTTP/1.1\r\n"
+            "POST /api/user HTTP/1.1\r\n"
             "Host: localhost:8080\r\n"
             "Connection: close\r\n"
             "User-Agent: C++HttpClient/1.0\r\n"
-            "\r\n";
+            "Content-Type: application/json\r\n"
+            "Content-Length: " + std::to_string(message_body.size()) + "\r\n"
+            "\r\n" +
+            message_body;
 
         // 发送请求并获取响应
         std::string response = client.sendRequest(http_request);

@@ -111,6 +111,7 @@ void EventLoop::HandleAlarm()
         if(it->second->timeOut(time(0),timeout_))
         {
             printf("超时删除%d\n",it->first);
+            printf("%d:%d\n",timeval_,timeout_);
             timeOutCB(it->first);//删除TcpServer connectionMap中对应元素
             {//需要加锁，因为主线程会调用EventLoop的newConnection操作connection_
                 std::lock_guard<std::mutex> lock(mmutex_);

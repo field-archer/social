@@ -1,9 +1,9 @@
 #include"Channel.h"
-Channel::Channel(int _fd,EventLoop *_eventLoop):fd_(_fd),eventLoop_(_eventLoop)
+Channel::Channel(int _fd,EventLoop *_eventLoop):fd_(_fd),eventLoop_(_eventLoop),Tevent_(0),Revent_(0)
 {
 }
 Channel::~Channel()                             //析构函数
-{
+{ 
     if(fd_==-1)return ; //避免close(-1)
     if(close(fd_)==-1)
     {
