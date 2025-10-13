@@ -5,7 +5,7 @@
 #include<memory>
 #include"Acceptor.h"
 #include"EventLoop.h"
-#include"Connectio.h"
+#include"Connection.h"
 #include"ThreadPool.h"
 
 class ThreadPool;

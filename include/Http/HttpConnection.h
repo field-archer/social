@@ -1,6 +1,6 @@
 #pragma once
 #include"HttpResponse.h"
-#include"Connectio.h"
+#include"Connection.h"
 class Connection;
 class HttpResponse;
 

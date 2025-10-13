@@ -12,7 +12,7 @@
 #include<atomic>
 #include"Epoll.h"
 #include"Channel.h"
-#include"Connectio.h"
+#include"Connection.h"
 class Channel;
 class Epoll;
 class Connection;

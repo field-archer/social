@@ -1,4 +1,4 @@
-#include"Connectio.h"
+#include"Connection.h"
 Connection::Connection(EventLoop* _eventLoop,std::unique_ptr<Socket> _clieSocket)
             :eventLoop_(_eventLoop),
             clieChannel_(new Channel(_clieSocket->fd(),eventLoop_)),
