@@ -26,28 +26,33 @@ bool HttpRequest::GetHeader(const std::string& _key,std::string& _val)
     _val=head_[_key];
     return true;
 }
-//得到响应体
-bool HttpRequest::GetBody(const std::string& _key,std::string& _val)
-{
-    // if(body_.contains(_key))
-    // {
-
-    // }else 
-    // {
-    //     return false;
-    // }
-    if(body_.find(_key)==body_.end())
-    {
-        return false;//未找到对应key
-    }
-    _val=body_[_key];
-    return true;
-}
-//得到请求体
-json HttpRequest::GetBody()
+//返回请求体字符串
+std::string HttpRequest::GetBody()
 {
     return body_;
 }
+//得到响应体
+// bool HttpRequest::GetBody(const std::string& _key,std::string& _val)
+// {
+//     // if(body_.contains(_key))
+//     // {
+
+//     // }else 
+//     // {
+//     //     return false;
+//     // }
+//     if(body_.find(_key)==body_.end())
+//     {
+//         return false;//未找到对应key
+//     }
+//     _val=body_[_key];
+//     return true;
+// }
+//得到请求体
+// json HttpRequest::GetBody()
+// {
+//     return body_;
+// }
 
 //传入消息及接收请求行、头、消息体的字符串
 //解析出的行，头均以一个\r\n结尾
@@ -179,14 +184,14 @@ bool HttpRequest::parseHead(std::string& _Head)
 //解析消息体（暂时默认全是json格式）
 bool HttpRequest::parseBody(std::string& _body)
 {    
-    try
-    {
-        body_=json::parse(_body);
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr<<"解析消息体出错（json反序列化出错）" << e.what() << std::endl;
-    }
+    // try
+    // {
+    //     body_=json::parse(_body);
+    // }
+    // catch(const std::exception& e)
+    // {
+    //     std::cerr<<"解析消息体出错（json反序列化出错）" << e.what() << std::endl;
+    // }
     
     // size_t ind=0;
     // printf("_body=%s&&&&\n",_body.c_str());
@@ -211,6 +216,8 @@ bool HttpRequest::parseBody(std::string& _body)
     // {
     //     printf("%s:%s!!!\n",pair.first.c_str(),pair.second.c_str());
     // }
+
+    body_=_body;
     return true;
 }
 bool HttpRequest::parse(std::string& _message)

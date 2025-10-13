@@ -16,36 +16,63 @@ HttpContext::HttpContext(HttpRequest& _httpRequest,HttpResponse& _httpResponse,H
     //_httpRequest加const修饰会导致移动变拷贝
 }
 //从httpRequest_的消息体中从得到对应val_
-bool HttpContext::GetRequestBody(const std::string& _key,std::string& _val)
-{
-    if(httpRequest_.GetBody(_key,_val)==false)
-    {
-        printf("获取%s时失败\n",_key.c_str());
-        return false;
-    }
-    return true;
-}
+// bool HttpContext::GetRequestBody(const std::string& _key,std::string& _val)
+// {
+//     if(httpRequest_.GetBody(_key,_val)==false)
+//     {
+//         printf("获取%s时失败\n",_key.c_str());
+//         return false;
+//     }
+//     return true;
+// }
 //发送404 NOT FOUND
-void HttpContext::Send404()
-{
-    httpResponse_.Set404();
-    httpConnection_.send(httpResponse_);
-}
-//发送200 OK
-void HttpContext::Send200()
-{
-    httpResponse_.Set200();
-    httpConnection_.send(httpResponse_);
-}
-//发送消息体为空的响应
-void HttpContext::SendWithoutBOdy(int _code,const std::string& _message)
-{
-    httpResponse_.SetStatusCode(_code);
-    httpResponse_.SetSatusMessage(_message);
-    httpConnection_.send(httpResponse_);
-}
+// void HttpContext::Send404()
+// {
+//     httpResponse_.Set404();
+//     httpConnection_.send(httpResponse_);
+// }
+// //发送200 OK
+// void HttpContext::Send200()
+// {
+//     httpResponse_.Set200();
+//     httpConnection_.send(httpResponse_);
+// }
+// //发送消息体为空的响应
+// void HttpContext::SendWithoutBOdy(int _code,const std::string& _message)
+// {
+//     httpResponse_.SetStatusCode(_code);
+//     httpResponse_.SetSatusMessage(_message);
+//     httpConnection_.send(httpResponse_);
+// }
 //返回json（request的body_）
-json HttpContext::GetRequestBody()
+// json HttpContext::GetRequestBody()
+// {
+//     return httpRequest_.GetBody();
+// }   
+//返回消息体字符串
+// std::string HttpContext::GetRequestBody()
+// {
+//     return std::move(httpRequest_.GetBody());//move避免拷贝
+// }
+
+//返回请求体,慎用，不要存储返回值
+HttpRequest& HttpContext::GetRequest()
 {
-    return httpRequest_.GetBody();
-}   
+    return httpRequest_;
+}
+//返回响应体，慎用，不要存储返回值
+HttpResponse& HttpContext::GetResponse()
+{
+    return httpResponse_;
+}
+//返回连接，慎用，不要存储返回值
+HttpConnection& HttpContext::GetConnection()
+{
+    return httpConnection_;
+}
+//设置常见响应头
+void HttpContext::SetUsefulHead()
+{
+    httpResponse_.SetHead("Content-Type", "application/json");
+    httpResponse_.SetHead("Content-Length", std::to_string(httpResponse_.GetBody().size()));
+}

@@ -13,11 +13,12 @@
 #include"DBConnection.h"
 // using spmysqlConnection=std::shared_ptr<mysqlx::Session>;
 class MYSQLConnectionPool;
+class DBConnection;
 using spDBPool=std::shared_ptr<MYSQLConnectionPool>;
 using upDBSession=std::unique_ptr<mysqlx::Session>;
 
 
-class MYSQLConnectionPool
+class MYSQLConnectionPool:public std::enable_shared_from_this<MYSQLConnectionPool>
 {
 private:
     //连接参数
@@ -53,9 +54,11 @@ public:
                     int _idleCheckInterval,int _connectionTimeOut);         //构造函数（ip,端口，用户名，密码，数据库，连接数）
     ~MYSQLConnectionPool();                                                     //析构函数（无用）
 
-    DBConnection GetConnection();                                              //得到一个连接
-    bool isVaild(DBConnection _connection);                              //检查连接是否有效
-    bool ReleaseConnection(DBConnection _connection);                          //归还连接
+    bool Init();                                                                //初始化连接
+
+    DBConnection GetConnection();                                               //得到一个连接
+    bool ReleaseConnection(DBConnection _connection);                           //归还连接
+    void ReleaseConnection(upDBSession _session);                               //归还连接(直接归还资源)
 
     size_t size();                                                    //总连接数
     size_t vaildNum();                                                //空闲连接数

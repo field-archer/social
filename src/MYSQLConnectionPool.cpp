@@ -14,6 +14,24 @@ MYSQLConnectionPool::MYSQLConnectionPool(const std::string& _host,int _port,//ip
                 idleCheckInterval_(_idleCheckInterval),connectionTimeOut_(_connectionTimeOut),
                 backGroundThread_([this]{BackGroundTask();})//后台线程
 {
+    // //初始化连接
+    // for(size_t i=0;i<minSize_;i++)
+    // {
+    
+    //     try//初始化连接
+    //     {
+    //         //初始化无需加锁
+    //         auto session=CreateNewConnection();
+    //         pool_.push(std::move(session));
+    //     }catch(const std::exception& e)//正常异常
+    //     {
+    //         std::cerr<<"MYSQL连接池初始化发生错误："<<e.what()<<std::endl;
+    //     }
+    // }
+}
+//初始化连接
+bool MYSQLConnectionPool::Init()
+{
     //初始化连接
     for(size_t i=0;i<minSize_;i++)
     {
@@ -22,14 +40,17 @@ MYSQLConnectionPool::MYSQLConnectionPool(const std::string& _host,int _port,//ip
         {
             //初始化无需加锁
             auto session=CreateNewConnection();
-            pool_.push(session);
+            pool_.push(std::move(session));
+
         }catch(const std::exception& e)//正常异常
         {
             std::cerr<<"MYSQL连接池初始化发生错误："<<e.what()<<std::endl;
+            return false;
         }
     }
+    return true;
 }
-//析构函数：关闭数据库
+//析构函数
 MYSQLConnectionPool::~MYSQLConnectionPool()
 {
     //停止后台线程
@@ -42,7 +63,9 @@ MYSQLConnectionPool::~MYSQLConnectionPool()
     {
         try
         {
-            (*pool_.front()).close();
+            //获取底层连接
+            DBConnection connection=std::move(pool_.front());
+            if(connection.isValid())(*connection).close();
         }catch(...)
         {
             //先忽略
@@ -57,8 +80,9 @@ DBConnection MYSQLConnectionPool::CreateNewConnection()
     try
     {
         //创建连接
-        auto session=mysqlx::Session(host_,port_,user_,passwd_,dataBase_);
-        return DBConnection(spDBPool(this),upDBSession(&session));
+        upDBSession connection=upDBSession (new mysqlx::Session(host_,port_,user_,passwd_,dataBase_));
+        currentNum_+=1;
+        return DBConnection(shared_from_this(),std::move(connection));
     }catch(const std::exception& e)//抛出异常交给调用方（GetConnection处理）
     {
         
@@ -75,7 +99,7 @@ DBConnection MYSQLConnectionPool::GetConnection()
     std::unique_lock<std::mutex> lock(connectionMutex_);//加锁保证不错过通知，条件变量所以用unique_lock
 
     if(poolCondition_.wait_for(lock,std::chrono::seconds(connectionTimeOut_),
-    [this]{return !pool_.empty()||currentNum_<maxSize_;})==false)//有空闲连接或能创建新连接
+        [this]{return !pool_.empty()||currentNum_<maxSize_;})==false)//有空闲连接或能创建新连接
     {
         //超时
         throw std::runtime_error("请求连接超时\n");
@@ -83,7 +107,7 @@ DBConnection MYSQLConnectionPool::GetConnection()
     //有空闲连接
     if(!pool_.empty())
     {
-        auto connection=pool_.front();
+        DBConnection connection=std::move(pool_.front());
         pool_.pop();
         return connection;
     }
@@ -93,8 +117,8 @@ DBConnection MYSQLConnectionPool::GetConnection()
         lock.unlock();//创建新连接开销大，解锁（CreateNewConnection线程安全）
         try
         {
-            auto session=CreateNewConnection();
-            if(session)return session;
+            DBConnection session=CreateNewConnection();
+            return session;
         }catch(const std::exception& e)
         {
             throw std::runtime_error("创建新连接失败："+std::string(e.what()));
@@ -103,28 +127,10 @@ DBConnection MYSQLConnectionPool::GetConnection()
     //不应执行到这里
     throw std::runtime_error("无可用连接（GetConnection出错）");    
 }
-//检查连接是否有效
-bool MYSQLConnectionPool::isVaild(DBConnection _connection)
-{
-    //空指针
-    if(_connection==nullptr)
-    {
-        return false;
-    }
-
-    try//执行sql语句测试连接有效性
-    {
-        _connection->sql("select 1").execute();
-        return true;
-    }catch(...)//连接无效
-    {
-        return false;
-    }
-}
 //归还连接
 bool MYSQLConnectionPool::ReleaseConnection(DBConnection _connection)
 {
-    if(isVaild(_connection)==false)
+    if(_connection.isValid()==false)
     {
         currentNum_-=1;
         poolCondition_.notify_one();//可创建新线程
@@ -133,12 +139,33 @@ bool MYSQLConnectionPool::ReleaseConnection(DBConnection _connection)
     //连接入池
     {
         std::lock_guard<std::mutex> lock(connectionMutex_);//加锁，因为操作pool_
-        pool_.push(_connection);
+        pool_.push(std::move(_connection));
     }
 
     //通知有可用线程
     poolCondition_.notify_one();
     return true;
+}
+//归还连接(直接归还资源)
+void MYSQLConnectionPool::ReleaseConnection(upDBSession _session)
+{
+    try
+    {
+        //验证有效性
+        _session->sql("select 1").execute();
+        //连接入池
+        {
+            std::lock_guard<std::mutex> lock(connectionMutex_);//加锁，因为操作pool_
+            pool_.push(DBConnection(shared_from_this(),std::move(_session)));
+            std::cerr<<"自动归还连接成功\n";
+        }
+    }
+    catch(...)
+    {
+        currentNum_-=1;
+        std::cerr<<"自动归还连接失败\n";
+    }
+    
 }
 //总连接数
 size_t MYSQLConnectionPool::size()
@@ -164,19 +191,19 @@ void MYSQLConnectionPool::BackGroundTask()
 
         //休眠空闲间隔，使用条件变量，可以唤醒
         if(poolCondition_.wait_for(lock,std::chrono::seconds(idleCheckInterval_),
-        [this]{return stopBackGroungThread_.load();})==true)
+        [this]{return stopBackGroungThread_.load();})==true)//等于true说明通知+stopBackGroungThread_w为true
         {
             break;//停止后台线程
         };
 
         //检查无效连接
-        std::queue<spmysqlConnection> newPool;//存放有效连接的新队列
+        std::queue<DBConnection> newPool;//存放有效连接的新队列
         while(!pool_.empty())
         {
-            auto session=pool_.front();
+            DBConnection connection=std::move(pool_.front());
             pool_.pop();
 
-            if(isVaild(session))newPool.push(session);
+            if(connection.isValid())newPool.push(std::move(connection));
             else 
             {
                 currentNum_-=1;
@@ -190,7 +217,8 @@ void MYSQLConnectionPool::BackGroundTask()
         {
             try
             {
-                pool_.front()->close();
+                DBConnection connection=std::move(pool_.front());
+                if(connection.isValid())(*connection).close();
             }catch(...)
             {
                 //忽略，后续优化

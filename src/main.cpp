@@ -5,9 +5,7 @@
 /*
 http服务url的根路径是/home/aaa/Codes/HttpServer/root
 下一步：
-加user,UserDAO,UserServices
-下一步：
-UserDAO Create User
+http的消息体，请求体改成string，保证通用性和低解耦
 */
 
 // HttpServer *httpServer;
@@ -28,7 +26,7 @@ int main()
 {
     signal(SIGINT,Stop);
     signal(SIGTERM,Stop);
-    mainServer=new MainServer("192.168.232.12",8080,2,2,33060,"aaa","1234qwer","test",10,3,30,300);
+    mainServer=new MainServer("192.168.38.121",8080,2,2,33060,"aaa","1234qwer","test",10,3,30,300);
     mainServer->Start();
     return 0;
 }

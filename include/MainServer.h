@@ -3,9 +3,20 @@
 #include"MYSQLConnectionPool.h"
 #include"HttpServer.h"
 #include"HttpContext.h"
-#include"User.h"
+#include"UserController.h"
 
-using spMYSQLPool=std::shared_ptr<MYSQLConnectionPool>;
+class User;
+class UserDAO;
+class UserService;
+class UserController;
+class DBConnection;
+class MYSQLConnectionPool;
+
+using spDBPool=std::shared_ptr<MYSQLConnectionPool>;
+using upDBSession=std::unique_ptr<mysqlx::Session>;
+using wpDBPool=std::weak_ptr<MYSQLConnectionPool>;
+
+// using spMYSQLPool=std::shared_ptr<MYSQLConnectionPool>;
 
 
 class MainServer
@@ -13,7 +24,7 @@ class MainServer
 private:
     HttpServer httpServer_;                                             //HttpServer层
     ThreadPool workThreadPool_;                                         //工作线程
-    spMYSQLPool mysqlPool_;                                             //mysql连接池
+    spDBPool mysqlPool_;                                             //mysql连接池
 
     // upContext context_;                                                 //HttpServer层发来的
 public:   

@@ -3,7 +3,8 @@ include_directories(../include)
 set(source main.cpp TcpServer.cpp Acceptor.cpp EventLoop.cpp Epoll.cpp 
             Channel.cpp Socket.cpp InetAddr.cpp Connection.cpp Buffer.cpp 
             HttpServer.cpp HttpConnection.cpp HttpRequest.cpp HttpResponse.cpp
-            ThreadPool.cpp TimeStamp.cpp MYSQLConnectionPool.cpp HttpContext.cpp MainServer.cpp)    
+            ThreadPool.cpp TimeStamp.cpp MYSQLConnectionPool.cpp HttpContext.cpp MainServer.cpp
+            DBConnection.cpp User.cpp UserDAO.cpp UserService.cpp UserController.cpp)    #User类和mysqlx::Session封装类
 set(source2 client.cpp)
 
 find_package(mysql-concpp REQUIRED)#MYSQL的xdevapi

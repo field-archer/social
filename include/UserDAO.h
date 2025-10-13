@@ -1,14 +1,21 @@
 #pragma once
 #include"User.h"
 #include"MYSQLConnectionPool.h"
-using spMYSQLPOOL=std::shared_ptr<MYSQLConnectionPool>;
+
+
+class MYSQLConnectionPool;
+class DBConnection;
+
+using spDBPool=std::shared_ptr<MYSQLConnectionPool>;
+
 
 class UserDAO
 {
 private:
-    spMYSQLPOOL mysqlPool_;     //共享的mysql连接池
+    spDBPool mysqlPool_;     //共享的mysql连接池
 public:
-    UserDAO(spMYSQLPOOL _mysqlPool);            //构造函数
+    UserDAO(spDBPool _mysqlPool);            //构造函数
     ~UserDAO();                                 //析构函数
-    void CreateUser(const User& _user);
+    void CreateUser(const User& _user);                                 //创建用户
+    bool LogIn(const std::string& _email,const std::string& _passwd);   //登录
 };

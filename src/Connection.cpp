@@ -74,7 +74,6 @@ void Connection::HandleWriteEvent()                                             
 
 //注册读事件
 //写入outputBuffer
-//实则不发送
 void Connection::send(std::string _message)                                             
 {
     if(close_){printf("已断开连接，不发送\n");return ;}

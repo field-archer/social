@@ -8,7 +8,6 @@
 #include <sstream>
 #include <map>
 #include <iomanip>
-// #include "json.hpp"  // 包含 nlohmann/json 库
 #include<nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -81,7 +80,7 @@ public:
 
 int main() {
     try {
-        HttpClient client("192.168.232.12", 8080);
+        HttpClient client("192.168.38.121", 8080);
         
         if (!client.connect()) {
             std::cerr << "Connection failed" << std::endl;
