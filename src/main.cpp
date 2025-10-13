@@ -5,7 +5,7 @@
 /*
 http服务url的根路径是/home/aaa/Codes/HttpServer/root
 下一步：
-http的消息体，请求体改成string，保证通用性和低解耦
+在MainServer的构造函数中搞定User系列的依赖
 */
 
 // HttpServer *httpServer;

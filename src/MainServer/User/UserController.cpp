@@ -1,15 +1,27 @@
 #include"UserController.h"
 
-//移动构造函数
+//移动构造函数(UserController)
+UserController::UserController(UserController&& _userController) noexcept:
+                userService_(std::move(_userController.userService_))
+{
+
+}
+//移动构造函数(UserService指针)
 UserController::UserController(std::unique_ptr<UserService>&& _userService) noexcept:
                 userService_(std::move(_userService))
 {
 
 }
-//移动赋值
+//移动赋值(UserService指针)
 UserController& UserController::operator=(std::unique_ptr<UserService>&& _userService)noexcept
 {
     userService_=std::move(_userService);
+    return *this;
+}
+//移动赋值(UserController)
+UserController& UserController::operator=(UserController&& _userController)noexcept
+{
+    userService_=std::move(_userController.userService_);
     return *this;
 }
 //注册函数

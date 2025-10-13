@@ -20,9 +20,6 @@ private:
     std::unordered_map<std::string,httpHandler>PostHandler_;            //post方法处理
 
     TcpServer tcpServer_;                                               //tcpServer层
-    // ThreadPool workThreadPool_;                                         //工作线程，在httpServer没有用到，只有初始化和停止
-
-    // upMYSQLPool mysqlPool_;                                             //mysql连接池
 
     //底层
     void Close(int _fd);                                                                //根据fd关闭Connection，map中也删除

@@ -11,12 +11,19 @@ MainServer::MainServer(const std::string& _ip,uint16_t _port,int _eventLoopNum,i
                     (_ip,_mysqlPort,_user,_passwd,_dataBase,_maxSize,_minSize,_idleCheckInterval,_connectionTimeOut)))
 
 {
+    //初始化连接
     if(mysqlPool_->Init()==false)
     {
         std::cerr<<"初始化连接池有连接创建失败\n";
     }
+    //回调函数
     httpServer_.SetSignUp(std::bind(&MainServer::SignUp,this,std::placeholders::_1));
     httpServer_.SetLogIn(std::bind(&MainServer::LogIn,this,std::placeholders::_1));
+    //User依赖
+    UserDAO* userDAO = new UserDAO(mysqlPool_);
+    UserService* userService= new UserService(std::move(std::unique_ptr<UserDAO>(userDAO)));
+    UserController userController(std::move(std::unique_ptr<UserService>(userService)));
+    userController_=std::move(userController);
 }
 //析构函数
 MainServer::~MainServer()
@@ -37,84 +44,10 @@ void MainServer::Stop()
 //处理注册
 void MainServer::SignUp(upContext _context)
 {
-    // //获取姓名（name），邮箱（email），密码（passwd）
-    // std::string name="",email="",passwd="";
-    
-    // try
-    // {
-    //     //构造User结构体
-    //     User newUser(_context->GetRequestBody());
-    //     //注册用户
-    // }
-    // catch(const std::exception& e)
-    // {
-    //     std::cerr << e.what() << '\n';
-    // }
-    
-
-    // if(_context->GetRequestBody("name",name)&&_context->GetRequestBody("email",email)&&_context->GetRequestBody("passwd",passwd))
-    // {
-    //     printf("获取用户信息成功,name=%s,email=%s,passwd=%s\n",name.c_str(),email.c_str(),passwd.c_str());
-    //     try
-    //     {
-    //         //获取mysql连接
-    //         DBConnection mysqlConnection=mysqlPool_->GetConnection();
-    //         (*mysqlConnection).sql("insert into user (name,email,passwd) values (?,?,?)")
-    //                         .bind(name,email,passwd).execute();
-    //     }catch(const std::exception& e)
-    //     {
-    //         std::cerr<<"注册用户失败:"+std::string(e.what())<<std::endl;
-    //     }
-    //     _context->Send200();
-    // }else//消息体无对应数据
-    // {
-    //     printf("获取用户信息失败\n");
-    //     _context->Send404();
-    //     _context->SendWithoutBOdy(400,"数据不全");
-    // }
-
-    UserDAO* userDAO = new UserDAO(mysqlPool_);
-    UserService* userService= new UserService(std::move(std::unique_ptr<UserDAO>(userDAO)));
-    UserController userController(std::move(std::unique_ptr<UserService>(userService)));
-    userController.HandleSignUp(std::move(_context));
+    userController_.HandleSignUp(std::move(_context));
 }
 //处理登录
 void MainServer::LogIn(upContext _context)
 {
-    // //获取邮箱（email），密码（passwd）
-    // std::string email="",passwd="";
-    // if(_context->GetRequestBody("email",email)&&_context->GetRequestBody("passwd",passwd))
-    // {
-    //     try
-    //     {
-    //         //获取mysql连接
-    //         DBConnection mysqlConnection=mysqlPool_->GetConnection();
-    //         mysqlx::SqlResult result=(*mysqlConnection).sql("select passwd from user where email=?")
-    //                                     .bind(email).execute();
-    //         const mysqlx::Row& row=result.fetchOne();
-    //         std::string rePasswd=row[0].get<std::string>();
-    //         if(rePasswd==passwd)
-    //         {
-    //             //密码正确
-    //             _context->SendWithoutBOdy(200,"密码正确");
-
-    //         }else
-    //         {
-    //             //密码错误
-    //             _context->SendWithoutBOdy(401,"密码错误");
-    //         }
-    //     }catch(const std::exception& e)
-    //     {
-    //         std::cerr<<"注册用户失败:"+std::string(e.what())<<std::endl;
-    //     }
-    // }else//消息体无对应数据
-    // {
-    //     _context->Send404();
-    // }
-
-
-    UserDAO* userDAO = new UserDAO(mysqlPool_);
-    UserService* userService= new UserService(std::move(std::unique_ptr<UserDAO>(userDAO)));
-    UserController userController(std::move(std::unique_ptr<UserService>(userService)));
-    userController.HandleLogIn(std::move(_context));
+    userController_.HandleLogIn(std::move(_context));
 }

@@ -1,5 +1,4 @@
 #pragma once
-// #include<mysqlx/xdevapi.h>
 #include"MYSQLConnectionPool.h"
 #include"HttpServer.h"
 #include"HttpContext.h"
@@ -16,7 +15,6 @@ using spDBPool=std::shared_ptr<MYSQLConnectionPool>;
 using upDBSession=std::unique_ptr<mysqlx::Session>;
 using wpDBPool=std::weak_ptr<MYSQLConnectionPool>;
 
-// using spMYSQLPool=std::shared_ptr<MYSQLConnectionPool>;
 
 
 class MainServer
@@ -26,7 +24,8 @@ private:
     ThreadPool workThreadPool_;                                         //工作线程
     spDBPool mysqlPool_;                                             //mysql连接池
 
-    // upContext context_;                                                 //HttpServer层发来的
+    UserController userController_;                                     //用户相关功能
+
 public:   
     MainServer(const std::string& _ip,uint16_t _port,int _eventLoopNum,int _workNum,
                 //mysql配置

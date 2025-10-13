@@ -33,13 +33,6 @@ std::string HttpResponse::GetBody()
 {
     return body_;
 }
-//得到响应体
-// bool HttpResponse::GetBody(const std::string& _key,std::string& _val)
-// {
-//     if(body_.find(_key)==body_.end())return false;//未找到对应key
-//     _val=body_[_key];
-//     return true;
-// }
 //设置状态码 
 void HttpResponse::SetStatusCode(int _code)
 {
@@ -61,11 +54,6 @@ void HttpResponse::SetBody(const std::string& _message)
 {
     body_=_message;
 }
-// //设置响应体
-// void HttpResponse::SetBody(const std::string& _key,const std::string& _val)
-// {
-//     body_[_key]=_val;
-// }
 //返回head_所有数据
 std::string HttpResponse::GetAllHeader()
 {
