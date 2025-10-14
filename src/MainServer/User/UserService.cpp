@@ -15,21 +15,19 @@ UserService::~UserService()
 {
 
 }
-//处理注册业务
-bool UserService::HandleSignUp(const std::string& _name,const std::string& _email,const std::string& _passwd)
+//处理注册业务，返回userId(0表失败)
+int UserService::HandleSignUp(const std::string& _name,const std::string& _email,const std::string& _passwd)
 {
     //暂时没有要求，后续加（比如邮箱已有表以注册，邮箱应为有效邮箱，密码安全性要求等）
 
     try
     {
         User newUser(_name,_email,_passwd);
-        userDAO_->CreateUser(newUser);
-        return true;
+        return userDAO_->CreateUser(newUser);
     }
     catch(const std::exception& e)
-    {
-        std::cerr <<"注册用户失败:" << e.what() << '\n';
-        return false;
+    {//直接throw，无需补充
+        throw std::runtime_error(e.what());
     }
 }   
 //处理登录业务
@@ -42,7 +40,7 @@ bool UserService::HandleLogIn(const std::string& _email,const std::string& _pass
         return userDAO_->LogIn(_email,_passwd);
     }
     catch(const std::exception& e)
-    {
+    {//直接throw，无需补充
         throw std::runtime_error("登录出错"+std::string(e.what()));
     }
 }

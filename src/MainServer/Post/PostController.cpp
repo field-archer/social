@@ -17,14 +17,18 @@ bool PostController::HandlePublishPost(std::unique_ptr<HttpContext> _context)
         std::unique_ptr<std::string> content=std::make_unique<std::string>(std::move(j["content"].get<std::string>()));
         int userId=j["user_id"].get<int>();
         //发表贴子
-        if(postService_.HandlePublishPost(std::move(content),userId))
+        int postId=postService_.HandlePublishPost(std::move(content),userId);
+        if(postId!=-1)
         {//发表成功
             std::cerr<<"发帖成功\n";
             _context->SetUsefulHead();
             _context->GetResponse().SetStatusCode(200);
             _context->GetResponse().SetSatusMessage("OK");
-            std::string body=R"({"message":"发表贴子成功!"})";
-            _context->GetResponse().SetBody(body);
+            // std::string body=R"({"message":"发表贴子成功!"})";
+            json j;
+            j["post_id"]=postId;
+            j["message"]="发帖成功";
+            _context->GetResponse().SetBody(j.dump());
             _context->GetConnection().send(_context->GetResponse());
             return true;
         }else 
@@ -33,8 +37,9 @@ bool PostController::HandlePublishPost(std::unique_ptr<HttpContext> _context)
             _context->SetUsefulHead();
             _context->GetResponse().SetStatusCode(500);
             _context->GetResponse().SetSatusMessage("error");
-            std::string body=R"({"message":"发表贴子失败!"})";
-            _context->GetResponse().SetBody(body);
+            json j;
+            j["message"]="发帖失败，请稍后再试";
+            _context->GetResponse().SetBody(j.dump());
             _context->GetConnection().send(_context->GetResponse());
             return false;
         }
@@ -45,11 +50,11 @@ bool PostController::HandlePublishPost(std::unique_ptr<HttpContext> _context)
         _context->SetUsefulHead();
         _context->GetResponse().SetStatusCode(400);
         _context->GetResponse().SetSatusMessage("error");
-        std::string body=R"({"error":"发表贴子失败,)"+std::string(e.what())+"})";
-        _context->GetResponse().SetBody(body);
+        json j;
+        j["error"]=e.what();
+        _context->GetResponse().SetBody(j.dump());
         _context->GetConnection().send(_context->GetResponse());
         return false;
-        // throw std::runtime_error("发表贴子失败:"+std::string(e.what()));
     }
 }
 //删除贴子
@@ -68,8 +73,9 @@ bool PostController::HandleDeletePost(std::unique_ptr<HttpContext> _context)
             _context->SetUsefulHead();
             _context->GetResponse().SetStatusCode(200);
             _context->GetResponse().SetSatusMessage("OK");
-            std::string body=R"({"message":"删除贴子成功!"})";
-            _context->GetResponse().SetBody(body);
+            json j;
+            j["message"]="删除贴子成功";
+            _context->GetResponse().SetBody(j.dump());
             _context->GetConnection().send(_context->GetResponse());
             return true;
         }else 
@@ -78,8 +84,9 @@ bool PostController::HandleDeletePost(std::unique_ptr<HttpContext> _context)
             _context->SetUsefulHead();
             _context->GetResponse().SetStatusCode(500);
             _context->GetResponse().SetSatusMessage("error");
-            std::string body=R"({"message":"删除贴子失败!"})";
-            _context->GetResponse().SetBody(body);
+            json j;
+            j["message"]="删除贴子失败";
+            _context->GetResponse().SetBody(j.dump());
             _context->GetConnection().send(_context->GetResponse());
             return false;
         }
@@ -90,10 +97,10 @@ bool PostController::HandleDeletePost(std::unique_ptr<HttpContext> _context)
         _context->SetUsefulHead();
         _context->GetResponse().SetStatusCode(400);
         _context->GetResponse().SetSatusMessage("error");
-        std::string body=R"({"error":"删除贴子失败,)"+std::string(e.what())+"})";
-        _context->GetResponse().SetBody(body);
+        json j;
+        j["error"]=e.what();
+        _context->GetResponse().SetBody(j.dump());
         _context->GetConnection().send(_context->GetResponse());
         return false;
-        // throw std::runtime_error("发表贴子失败:"+std::string(e.what()));
     }
 }

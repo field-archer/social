@@ -11,6 +11,6 @@ public:
     PostService()=default;                  //构造函数
     ~PostService()=default;                 //析构函数
 
-    bool HandlePublishPost(std::unique_ptr<std::string> _content,int _userId);               //发表贴子
+    int HandlePublishPost(std::unique_ptr<std::string> _content,int _userId);               //发表贴子
     bool HandleDeletePost(int _postId);                //删除贴子
 };

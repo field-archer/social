@@ -74,12 +74,16 @@ bool UserController::HandleLogIn(std::unique_ptr<HttpContext> _context)
         json j=json::parse(std::move(_context->GetRequest().GetBody()));
         std::string email=j["email"].get<std::string>();
         std::string passwd=j["passwd"].get<std::string>();
-
-        if(userService_->HandleLogIn(email,passwd))
+        
+        int userId=userService_->HandleLogIn(email,passwd);
+        if(userId!=0)
         {//登录成功
             _context->GetResponse().SetStatusCode(200);
             _context->GetResponse().SetSatusMessage("OK");
-            _context->GetResponse().SetBody(R"({"message": "用户登录成功!"})");
+            json j;
+            j["message"]="用户登录成功";
+            j["user_id"]=userId;
+            _context->GetResponse().SetBody(j.dump());
             _context->SetUsefulHead();
             _context->GetConnection().send(_context->GetResponse());
             return true;
@@ -87,7 +91,9 @@ bool UserController::HandleLogIn(std::unique_ptr<HttpContext> _context)
         {//登录失败
             _context->GetResponse().SetStatusCode(500);
             _context->GetResponse().SetSatusMessage("error");
-            _context->GetResponse().SetBody(R"({"message": "用户登录失败!"})");
+            json j;
+            j["message"]="用户登录失败";
+            _context->GetResponse().SetBody(j.dump());
             _context->SetUsefulHead();
             _context->GetConnection().send(_context->GetResponse());
             return false;
@@ -97,7 +103,9 @@ bool UserController::HandleLogIn(std::unique_ptr<HttpContext> _context)
     {//解析失败
         _context->GetResponse().SetStatusCode(400);
         _context->GetResponse().SetSatusMessage("error");
-        _context->GetResponse().SetBody(std::string(R"({"message": ")")+e.what()+std::string(R"("})"));
+        json j;
+        j["error"]=e.what();
+        _context->GetResponse().SetBody(j.dump());
         _context->SetUsefulHead();
         _context->GetConnection().send(_context->GetResponse());
         return false;

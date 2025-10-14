@@ -10,8 +10,8 @@ UserDAO::~UserDAO()
 
 }
 
-//创建用户
-void UserDAO::CreateUser(User& _user)
+//创建用户，返回userId(0表失败),_user内设置userId
+int UserDAO::CreateUser(User& _user)
 {
     try
     {
@@ -22,13 +22,12 @@ void UserDAO::CreateUser(User& _user)
                         .bind(_user.GetName(),_user.GetEmail(),_user.GetPasswd()).execute();
         int id=result.getAutoIncrementValue();//自增主键id
         _user.SetId(id);
-        //归还连接
-        // mysqlPool_->ReleaseConnection(std::move(mysqlConnection));
+        return id;
         //自动归还连接
     }
     catch(const std::exception& e)
     {
-        std::cerr<<"创建用户失败："<<e.what()<<std::endl;
+        throw std::runtime_error("创建用户失败"+std::string(e.what()));
     }
     
 }

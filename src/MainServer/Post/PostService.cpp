@@ -7,7 +7,7 @@ PostService:: PostService(const PostDAO& _postDAO):postDAO_(_postDAO)
 }  
 
 //发表贴子
-bool PostService::HandlePublishPost(std::unique_ptr<std::string> _content,int _userId)
+int PostService::HandlePublishPost(std::unique_ptr<std::string> _content,int _userId)
 {
     //检查userId对应用户是否存在
     UserDAO userDAO(postDAO_.GetDBPool());//获取UserDAO
@@ -16,7 +16,8 @@ bool PostService::HandlePublishPost(std::unique_ptr<std::string> _content,int _u
     try
     {
         std::unique_ptr<Post> post (new Post(std::move(_content),_userId));
-        return postDAO_.PublishPost(std::move(post));//贴子id丢失?
+        int postId=postDAO_.PublishPost(std::move(post));
+        return postId;
     }
     catch(const std::exception& e)
     {
