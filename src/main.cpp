@@ -5,7 +5,9 @@
 /*
 http服务url的根路径是/home/aaa/Codes/HttpServer/root
 下一步：
-在MainServer的构造函数中搞定User系列的依赖
+完善postController中的删除贴子，之后完善MainServer
+改进：
+令HttpContext只能移动复制和移动构造，替换掉unique_ptr的频繁构造
 */
 
 // HttpServer *httpServer;

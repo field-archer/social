@@ -77,7 +77,7 @@ bool UserController::HandleLogIn(std::unique_ptr<HttpContext> _context)
 
         if(userService_->HandleLogIn(email,passwd))
         {//登录成功
-            _context->GetResponse().SetStatusCode(201);
+            _context->GetResponse().SetStatusCode(200);
             _context->GetResponse().SetSatusMessage("OK");
             _context->GetResponse().SetBody(R"({"message": "用户登录成功!"})");
             _context->SetUsefulHead();

@@ -3,6 +3,7 @@
 #include"HttpServer.h"
 #include"HttpContext.h"
 #include"UserController.h"
+#include"PostController.h"
 
 class User;
 class UserDAO;
@@ -26,6 +27,10 @@ private:
 
     UserController userController_;                                     //用户相关功能
 
+    PostController postController_;                                     //贴子相关功能
+
+
+
 public:   
     MainServer(const std::string& _ip,uint16_t _port,int _eventLoopNum,int _workNum,
                 //mysql配置
@@ -37,6 +42,12 @@ public:
     void Start();                                                   //开始函数
     void Stop();                                                    //终止函数
 
+    //用户服务
     void SignUp(upContext _context);              //处理注册
     void LogIn(upContext _context);               //处理登录
+
+
+    //贴子服务
+    void PublishPost(upContext _context);           //发表贴子
+    void DeletePost(upContext _context);            //删除贴子
 };

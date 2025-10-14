@@ -96,3 +96,13 @@ void HttpServer::SetLogIn(std::function<void(upContext)> _fun)
 {
     PostHandler_["/api/user/login"]=_fun;
 }
+//设置发帖回调函数
+void HttpServer::SetPublishPost(httpHandler _fun)
+{
+    PostHandler_["/api/post/publish"]=_fun;
+}
+//设置删帖回调函数
+void HttpServer::SetDeletePost(httpHandler _fun)
+{
+    PostHandler_["/api/post/delete"]=_fun;
+}

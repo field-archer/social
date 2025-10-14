@@ -45,8 +45,11 @@ public:
     void Start();                                                                       //处理事件
     void Stop();                                                                        //停止线程池和tcpServer
 
-    void SetSignUp(std::function<void(upContext)> _fun);                                         //设置用户注册回调函数
-    void SetLogIn(std::function<void(upContext)> _fun);                                          //设置用户登录回调函数
+    void SetSignUp(httpHandler _fun);                                         //设置用户注册回调函数
+    void SetLogIn(httpHandler _fun);                                          //设置用户登录回调函数
+
+    void SetPublishPost(httpHandler _fun);                                      //设置发帖回调函数
+    void SetDeletePost(httpHandler _fun);                                       //设置删帖回调函数
 
 
 };

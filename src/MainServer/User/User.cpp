@@ -33,3 +33,8 @@ std::string User::GetPasswd() const
 {
     return passwd_;
 }
+//设置id
+void User::SetId(int _id)
+{
+    id_=_id;
+}

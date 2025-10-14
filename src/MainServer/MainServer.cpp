@@ -17,13 +17,19 @@ MainServer::MainServer(const std::string& _ip,uint16_t _port,int _eventLoopNum,i
         std::cerr<<"初始化连接池有连接创建失败\n";
     }
     //回调函数
-    httpServer_.SetSignUp(std::bind(&MainServer::SignUp,this,std::placeholders::_1));
-    httpServer_.SetLogIn(std::bind(&MainServer::LogIn,this,std::placeholders::_1));
-    //User依赖
+    httpServer_.SetSignUp(std::bind(&MainServer::SignUp,this,std::placeholders::_1));   //用户注册
+    httpServer_.SetLogIn(std::bind(&MainServer::LogIn,this,std::placeholders::_1));     //用户登录
+    httpServer_.SetPublishPost(std::bind(&MainServer::PublishPost,this,std::placeholders::_1)); //发表贴子
+    httpServer_.SetDeletePost(std::bind(&MainServer::DeletePost,this,std::placeholders::_1));   //删除贴子
+    //UserController依赖
     UserDAO* userDAO = new UserDAO(mysqlPool_);
     UserService* userService= new UserService(std::move(std::unique_ptr<UserDAO>(userDAO)));
     UserController userController(std::move(std::unique_ptr<UserService>(userService)));
     userController_=std::move(userController);
+    //PostController依赖
+    PostDAO postDAO(mysqlPool_);
+    PostService postService(postDAO);
+    postController_=PostController (postService);
 }
 //析构函数
 MainServer::~MainServer()
@@ -50,4 +56,14 @@ void MainServer::SignUp(upContext _context)
 void MainServer::LogIn(upContext _context)
 {
     userController_.HandleLogIn(std::move(_context));
+}
+//发表贴子
+void MainServer::PublishPost(upContext _context)
+{
+    postController_.HandlePublishPost(std::move(_context));
+}
+//删除贴子
+void MainServer::DeletePost(upContext _context)
+{
+    postController_.HandleDeletePost(std::move(_context));
 }
