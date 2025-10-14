@@ -27,6 +27,9 @@ private:
 
     UserController userController_;                                     //用户相关功能
 
+
+    PostDAO postDAO_;                                                   //贴子相关依赖
+    PostService postService_;                                           //贴子相关依赖
     PostController postController_;                                     //贴子相关功能
 
 

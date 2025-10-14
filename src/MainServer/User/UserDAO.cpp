@@ -31,21 +31,21 @@ int UserDAO::CreateUser(User& _user)
     }
     
 }
-//登录
-bool UserDAO::LogIn(const std::string& _email,const std::string& _passwd)
+//登录，返回userId(0表失败)
+int UserDAO::LogIn(const std::string& _email,const std::string& _passwd)
 {
     try
     {
         //获取mysql连接
         DBConnection mysqlConnection=mysqlPool_->GetConnection();
         //操作数据库
-        mysqlx::SqlResult result=(*mysqlConnection).sql("select passwd from user where email = ?")
+        mysqlx::SqlResult result=(*mysqlConnection).sql("select id,passwd from user where email = ?")
                             .bind(_email).execute();
         mysqlx::Row row=result.fetchOne();
-        std::string rePasswd=row[0].get<std::string>();
-        return _passwd==rePasswd;
-        //归还连接
-        // mysqlPool_->ReleaseConnection(std::move(mysqlConnection));
+        int id=row[0].get<int>();
+        std::string rePasswd=row[1].get<std::string>();
+        if(_passwd!=rePasswd)return 0;
+        else return id;
         //自动归还连接
     }
     catch(const std::exception& e)

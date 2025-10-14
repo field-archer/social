@@ -13,4 +13,5 @@ public:
 
     int HandlePublishPost(std::unique_ptr<std::string> _content,int _userId);               //发表贴子
     bool HandleDeletePost(int _postId);                //删除贴子
+
 };

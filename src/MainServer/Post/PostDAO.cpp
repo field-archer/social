@@ -1,7 +1,12 @@
 #include"PostDAO.h"
 
 //构造函数
-PostDAO::PostDAO(spDBPool _dbPool)
+PostDAO::PostDAO(spDBPool _dbPool):dbPool_(_dbPool)
+{
+
+}
+//拷贝构造函数
+PostDAO::PostDAO(const PostDAO& _postDAO):dbPool_(_postDAO.dbPool_)
 {
 
 }

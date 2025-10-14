@@ -8,7 +8,7 @@
 #include <sstream>
 #include <map>
 #include <iomanip>
-#include<nlohmann/json.hpp>
+#include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
 
@@ -78,6 +78,51 @@ public:
     }
 };
 
+// 解析HTTP响应并返回状态码和JSON响应体
+std::pair<int, json> parseHttpResponse(const std::string& response) {
+    size_t pos = response.find("\r\n");
+    std::string status_line = response.substr(0, pos);
+    
+    size_t code_pos = status_line.find(' ');
+    int status_code = std::stoi(status_line.substr(code_pos + 1, 3));
+    
+    size_t body_pos = response.find("\r\n\r\n");
+    std::string body = response.substr(body_pos + 4);
+    
+    json response_json;
+    try {
+        response_json = json::parse(body);
+    } catch (const json::parse_error& e) {
+        // 如果解析失败，创建一个包含错误信息的JSON对象
+        response_json = {{"error", "Failed to parse JSON response"}, {"raw_response", body}};
+    }
+    
+    return {status_code, response_json};
+}
+
+// 发送HTTP请求并显示响应
+std::pair<int, json> sendHttpRequest(HttpClient& client, const std::string& method, 
+                                    const std::string& path, const json& data = json::object()) {
+    // 构建请求体
+    std::string message_body = data.dump();
+    
+    // 构建HTTP请求
+    std::string http_request = 
+        method + " " + path + " HTTP/1.1\r\n"
+        "Host: localhost:8080\r\n"
+        "Connection: close\r\n"
+        "User-Agent: C++HttpClient/1.0\r\n"
+        "Content-Type: application/json\r\n"
+        "Content-Length: " + std::to_string(message_body.size()) + "\r\n"
+        "\r\n" + message_body;
+
+    // 发送请求并获取响应
+    std::string response_str = client.sendRequest(http_request);
+    
+    // 解析响应
+    return parseHttpResponse(response_str);
+}
+
 int main() {
     try {
         HttpClient client("192.168.38.121", 8080);
@@ -88,102 +133,125 @@ int main() {
         }
 
         int choice;
-        std::cout << "请选择操作: 1(注册) 或 2(登录): ";
-        std::cin >> choice;
-        std::cin.ignore(); // 清除输入缓冲区
+        int user_id = 0; // 存储用户ID，初始化为0
+        
+        while (true) {
+            std::cout << "输入1/2/3---注册/登录/退出: ";
+            std::cin >> choice;
+            std::cin.ignore(); // 清除输入缓冲区
 
-        std::string path;
-        json request_data; // 使用 nlohmann::json 对象
-        
-        if (choice == 1) {
-            // 注册
-            std::string name, email, passwd;
-            std::cout << "请输入用户名: ";
-            std::getline(std::cin, name);
-            std::cout << "请输入邮箱: ";
-            std::getline(std::cin, email);
-            std::cout << "请输入密码: ";
-            std::getline(std::cin, passwd);
-            
-            request_data["name"] = name;
-            request_data["email"] = email;
-            request_data["passwd"] = passwd;
-            
-            path = "/api/user/signup";
-            
-        } else if (choice == 2) {
-            // 登录
-            std::string email, passwd;
-            std::cout << "请输入邮箱: ";
-            std::getline(std::cin, email);
-            std::cout << "请输入密码: ";
-            std::getline(std::cin, passwd);
-            
-            request_data["email"] = email;
-            request_data["passwd"] = passwd;
-            
-            path = "/api/user/login";
-            
-        } else {
-            std::cerr << "无效的选择" << std::endl;
-            return 1;
-        }
-
-        // 将 JSON 对象转换为字符串
-        std::string message_body = request_data.dump();
-
-        // 构造HTTP请求
-        std::string http_request = 
-            "POST " + path + " HTTP/1.1\r\n"
-            "Host: localhost:8080\r\n"
-            "Connection: close\r\n"
-            "User-Agent: C++HttpClient/1.0\r\n"
-            "Content-Type: application/json\r\n"  // 修改为 application/json
-            "Content-Length: " + std::to_string(message_body.size()) + "\r\n"
-            "\r\n" +
-            message_body;
-
-        std::cout << "发送的HTTP请求:\n" << http_request << std::endl;
-        std::cout << "----------------------" << std::endl;
-
-        // 发送请求并获取响应
-        std::string response = client.sendRequest(http_request);
-        
-        // 解析HTTP响应
-        size_t pos = response.find("\r\n");
-        std::string status_line = response.substr(0, pos);
-        
-        size_t body_pos = response.find("\r\n\r\n");
-        std::string headers = response.substr(pos + 2, body_pos - pos - 2);
-        std::string body = response.substr(body_pos + 4);
-        
-        // 提取状态码
-        size_t code_pos = status_line.find(' ');
-        std::string status_code = status_line.substr(code_pos + 1, 3);
-        
-        std::cout << "响应状态: " << status_line << std::endl;
-        std::cout << "响应码: " << status_code << std::endl;
-        std::cout << "响应头: " << std::endl << headers << std::endl;
-        
-        // 尝试解析响应体为 JSON
-        try {
-            json response_json = json::parse(body);
-            std::cout << "响应体 (JSON格式): " << std::endl << response_json.dump(4) << std::endl;
-            
-            // 提取并打印常见的 JSON 字段
-            if (response_json.contains("code")) {
-                std::cout << "业务状态码: " << response_json["code"] << std::endl;
+            if (choice == 3) {
+                std::cout << "退出程序" << std::endl;
+                break;
             }
-            if (response_json.contains("message")) {
-                std::cout << "消息: " << response_json["message"] << std::endl;
+
+            json request_data;
+            std::string path;
+            
+            if (choice == 1) {
+                // 注册
+                std::string name, email, passwd;
+                std::cout << "请输入用户名: ";
+                std::getline(std::cin, name);
+                std::cout << "请输入邮箱: ";
+                std::getline(std::cin, email);
+                std::cout << "请输入密码: ";
+                std::getline(std::cin, passwd);
+                
+                request_data["name"] = name;
+                request_data["email"] = email;
+                request_data["passwd"] = passwd;
+                
+                path = "/api/user/signup";
+                
+            } else if (choice == 2) {
+                // 登录
+                std::string email, passwd;
+                std::cout << "请输入邮箱: ";
+                std::getline(std::cin, email);
+                std::cout << "请输入密码: ";
+                std::getline(std::cin, passwd);
+                
+                request_data["email"] = email;
+                request_data["passwd"] = passwd;
+                
+                path = "/api/user/login";
+            } else {
+                std::cerr << "无效的选择，请重新输入" << std::endl;
+                continue;
             }
-            if (response_json.contains("data")) {
-                std::cout << "数据: " << response_json["data"] << std::endl;
+
+            // 发送请求
+            auto [status_code, response_json] = sendHttpRequest(client, "POST", path, request_data);
+            
+            std::cout << "响应状态码: " << status_code << std::endl;
+            std::cout << "响应内容: " << response_json.dump(4) << std::endl;
+            
+            // 检查登录/注册是否成功
+            if (status_code == 200) {
+                if (choice == 1) {
+                    std::cout << "注册成功" << std::endl;
+                } else {
+                    std::cout << "登录成功" << std::endl;
+                }
+                
+                // 获取用户ID
+                if (response_json.contains("user_id")) {
+                    if (response_json["user_id"].is_number()) {
+                        user_id = response_json["user_id"].get<int>();
+                    } else if (response_json["user_id"].is_string()) {
+                        user_id = std::stoi(response_json["user_id"].get<std::string>());
+                    }
+                    std::cout << "已获取用户ID: " << user_id << std::endl;
+                }
+                
+                // 进入登录后的操作循环
+                while (true) {
+                    std::cout << "输入1/2/3---发帖/退出登录/退出程序: ";
+                    std::cin >> choice;
+                    std::cin.ignore();
+                    
+                    if (choice == 2) {
+                        std::cout << "退出登录" << std::endl;
+                        user_id = 0;
+                        break;
+                    } else if (choice == 3) {
+                        std::cout << "退出程序" << std::endl;
+                        return 0;
+                    } else if (choice != 1) {
+                        std::cerr << "无效的选择，请重新输入" << std::endl;
+                        continue;
+                    }
+                    
+                    // 发帖
+                    std::string content;
+                    std::cout << "请输入帖子内容: ";
+                    std::getline(std::cin, content);
+                    
+                    json post_data;
+                    post_data["content"] = content;
+                    post_data["user_id"] = user_id; // 添加用户ID到消息体
+                    
+                    std::cout << "发送的消息体: " << post_data.dump() << std::endl;
+                    
+                    // 发送请求
+                    auto [post_status, post_response] = sendHttpRequest(client, "POST", "/api/post/publish", post_data);
+                    
+                    std::cout << "响应状态码: " << post_status << std::endl;
+                    std::cout << "响应内容: " << post_response.dump(4) << std::endl;
+                    
+                    if (post_status == 200 && post_response.contains("post_id")) {
+                        std::cout << "发帖成功，帖子ID: ";
+                        if (post_response["post_id"].is_number()) {
+                            std::cout << post_response["post_id"].get<int>() << std::endl;
+                        } else if (post_response["post_id"].is_string()) {
+                            std::cout << post_response["post_id"].get<std::string>() << std::endl;
+                        }
+                    }
+                }
+            } else {
+                std::cout << "操作失败" << std::endl;
             }
-        } catch (const json::parse_error& e) {
-            // 如果解析失败，按普通文本输出
-            std::cout << "响应体 (文本格式): " << std::endl << body << std::endl;
-            std::cerr << "JSON解析错误: " << e.what() << std::endl;
         }
         
     } catch (const std::exception& e) {

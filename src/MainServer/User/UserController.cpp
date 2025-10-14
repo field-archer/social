@@ -36,11 +36,15 @@ bool UserController::HandleSignUp(std::unique_ptr<HttpContext> _context)
         std::string email=j["email"].get<std::string>();
         std::string passwd=j["passwd"].get<std::string>();
 
-        if(userService_->HandleSignUp(name,email,passwd))
+        int userId=userService_->HandleSignUp(name,email,passwd);
+        if(userId!=0)
         {//注册成功
-            _context->GetResponse().SetStatusCode(201);
+            _context->GetResponse().SetStatusCode(200);
             _context->GetResponse().SetSatusMessage("OK");
-            _context->GetResponse().SetBody(R"({"message": "用户注册成功!"})");
+            json j;
+            j["message"]="用户注册成功";
+            j["user_id"]=userId;
+            _context->GetResponse().SetBody(j.dump());
             _context->SetUsefulHead();
             _context->GetConnection().send(_context->GetResponse());
             return true;
@@ -48,7 +52,9 @@ bool UserController::HandleSignUp(std::unique_ptr<HttpContext> _context)
         {//注册失败
             _context->GetResponse().SetStatusCode(500);
             _context->GetResponse().SetSatusMessage("error");
-            _context->GetResponse().SetBody(R"({"message": "用户注册失败!"})");
+            json j;
+            j["message"]="用户注册失败";
+            _context->GetResponse().SetBody(j.dump());
             _context->SetUsefulHead();
             _context->GetConnection().send(_context->GetResponse());
             return false;
@@ -58,7 +64,9 @@ bool UserController::HandleSignUp(std::unique_ptr<HttpContext> _context)
     {//解析失败
         _context->GetResponse().SetStatusCode(400);
         _context->GetResponse().SetSatusMessage("error");
-        _context->GetResponse().SetBody(std::string(R"({"message": ")")+e.what()+std::string(R"("})"));
+        json j;
+        j["message"]="用户注册失败";
+        _context->GetResponse().SetBody(j.dump());
         _context->SetUsefulHead();
         _context->GetConnection().send(_context->GetResponse());
         return false;

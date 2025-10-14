@@ -12,6 +12,7 @@ bool PostController::HandlePublishPost(std::unique_ptr<HttpContext> _context)
     try
     {
         //解析json数据
+        // printf("消息体为:%s$$$\n",_context->GetRequest().GetBody().c_str());
         json j=json::parse(_context->GetRequest().GetBody());
         //获取context和userId
         std::unique_ptr<std::string> content=std::make_unique<std::string>(std::move(j["content"].get<std::string>()));

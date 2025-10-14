@@ -5,7 +5,7 @@
 /*
 http服务url的根路径是/home/aaa/Codes/HttpServer/root
 下一步：
-完善postController中的删除贴子，之后完善MainServer
+postDAO.getPool（）返回空连接池
 改进：
 令HttpContext只能移动复制和移动构造，替换掉unique_ptr的频繁构造
 */

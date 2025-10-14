@@ -30,8 +30,8 @@ int UserService::HandleSignUp(const std::string& _name,const std::string& _email
         throw std::runtime_error(e.what());
     }
 }   
-//处理登录业务
-bool UserService::HandleLogIn(const std::string& _email,const std::string& _passwd)
+//处理登录业务，返回userId(0表失败)
+int UserService::HandleLogIn(const std::string& _email,const std::string& _passwd)
 {
     //暂时没有要求，后续加（比如邮箱未有表未注册，邮箱应为有效邮箱，密码长度不够等最低位数等）
 

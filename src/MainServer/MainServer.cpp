@@ -8,7 +8,8 @@ MainServer::MainServer(const std::string& _ip,uint16_t _port,int _eventLoopNum,i
                 //初始化列表
                 :httpServer_(_ip,_port,_eventLoopNum),workThreadPool_(_workNum,"工作线程"),
                 mysqlPool_(std::move(std::make_unique<MYSQLConnectionPool>//初始化mysql连接池
-                    (_ip,_mysqlPort,_user,_passwd,_dataBase,_maxSize,_minSize,_idleCheckInterval,_connectionTimeOut)))
+                    (_ip,_mysqlPort,_user,_passwd,_dataBase,_maxSize,_minSize,_idleCheckInterval,_connectionTimeOut))),
+                postDAO_(mysqlPool_),postService_(postDAO_),postController_(postService_)//post相关依赖
 
 {
     //初始化连接
@@ -26,10 +27,6 @@ MainServer::MainServer(const std::string& _ip,uint16_t _port,int _eventLoopNum,i
     UserService* userService= new UserService(std::move(std::unique_ptr<UserDAO>(userDAO)));
     UserController userController(std::move(std::unique_ptr<UserService>(userService)));
     userController_=std::move(userController);
-    //PostController依赖
-    PostDAO postDAO(mysqlPool_);
-    PostService postService(postDAO);
-    postController_=PostController (postService);
 }
 //析构函数
 MainServer::~MainServer()

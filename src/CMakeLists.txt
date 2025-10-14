@@ -15,7 +15,7 @@ aux_source_directory(Tcp Tcp)
 aux_source_directory(Tool Tool)
 set(server main.cpp ${Http} ${MainServer} ${MYSQL} ${Tcp} ${Tool} ${User} ${Post})
 
-set(client Client/httpClient.cpp)
+set(client Client/client.cpp)
 
 find_package(mysql-concpp REQUIRED)#MYSQL的xdevapi
 find_package(nlohmann_json 3.11.3 REQUIRED)
