@@ -50,9 +50,9 @@ void HttpResponse::SetHead(const std::string& _key,const std::string& _val)
     head_[_key]=_val;
 }
 //设置响应体
-void HttpResponse::SetBody(const std::string& _message)
+void HttpResponse::SetBody(std::string&& _message)
 {
-    body_=_message;
+    body_=std::move(_message);
 }
 //返回head_所有数据
 std::string HttpResponse::GetAllHeader()

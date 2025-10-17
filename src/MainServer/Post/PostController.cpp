@@ -12,7 +12,6 @@ bool PostController::HandlePublishPost(std::unique_ptr<HttpContext> _context)
     try
     {
         //解析json数据
-        // printf("消息体为:%s$$$\n",_context->GetRequest().GetBody().c_str());
         json j=json::parse(_context->GetRequest().GetBody());
         //获取context和userId
         std::unique_ptr<std::string> content=std::make_unique<std::string>(std::move(j["content"].get<std::string>()));
@@ -22,39 +21,47 @@ bool PostController::HandlePublishPost(std::unique_ptr<HttpContext> _context)
         if(postId!=-1)
         {//发表成功
             std::cerr<<"发帖成功\n";
-            _context->SetUsefulHead();
-            _context->GetResponse().SetStatusCode(200);
-            _context->GetResponse().SetSatusMessage("OK");
-            // std::string body=R"({"message":"发表贴子成功!"})";
-            json j;
-            j["post_id"]=postId;
-            j["message"]="发帖成功";
-            _context->GetResponse().SetBody(j.dump());
-            _context->GetConnection().send(_context->GetResponse());
+            //构建http响应并发送
+            _context->SetReSponseStatusANDUsefulHead(200,"OK");
+            //json数据构建响应体
+            json j=
+            {
+                {"post_id",postId},
+                {"message","发帖成功"}
+            };
+            _context->SetResponseBody(std::move(j.dump()));
+            _context->Send();
             return true;
         }else 
         {//发表失败
             std::cerr<<"发帖失败\n";
-            _context->SetUsefulHead();
-            _context->GetResponse().SetStatusCode(500);
-            _context->GetResponse().SetSatusMessage("error");
-            json j;
-            j["message"]="发帖失败，请稍后再试";
-            _context->GetResponse().SetBody(j.dump());
-            _context->GetConnection().send(_context->GetResponse());
+
+            //构建http响应并发送
+            _context->SetReSponseStatusANDUsefulHead(500,"error");
+            //json数据构建响应体
+            json j=
+            {
+                {"message","发帖失败，请稍后再试"}
+            };
+            _context->SetResponseBody(std::move(j.dump()));
+            _context->Send();
             return false;
         }
     }
     catch(const std::exception& e)
     {//出错
         std::cerr<<"发帖失败且出错\n";
-        _context->SetUsefulHead();
-        _context->GetResponse().SetStatusCode(400);
-        _context->GetResponse().SetSatusMessage("error");
-        json j;
-        j["error"]=e.what();
-        _context->GetResponse().SetBody(j.dump());
-        _context->GetConnection().send(_context->GetResponse());
+
+        //构建http响应并发送
+        _context->SetReSponseStatusANDUsefulHead(400,"error");
+        //json数据构建响应体
+        json j=
+        {
+            {"error",e.what()}
+        };
+        _context->SetResponseBody(std::move(j.dump()));
+        _context->Send();
+
         return false;
     }
 }
@@ -71,37 +78,105 @@ bool PostController::HandleDeletePost(std::unique_ptr<HttpContext> _context)
         if(postService_.HandleDeletePost(postId))
         {//发表成功
             std::cerr<<"删帖成功\n";
-            _context->SetUsefulHead();
-            _context->GetResponse().SetStatusCode(200);
-            _context->GetResponse().SetSatusMessage("OK");
-            json j;
-            j["message"]="删除贴子成功";
-            _context->GetResponse().SetBody(j.dump());
-            _context->GetConnection().send(_context->GetResponse());
+
+            //构建http响应并发送
+            _context->SetReSponseStatusANDUsefulHead(200,"OK");
+            //json数据构建响应体
+            json j=
+            {
+                {"message","删除贴子成功"}
+            };
+            _context->SetResponseBody(std::move(j.dump()));
+            _context->Send();
+
             return true;
         }else 
         {//发表失败
             std::cerr<<"删帖失败\n";
-            _context->SetUsefulHead();
-            _context->GetResponse().SetStatusCode(500);
-            _context->GetResponse().SetSatusMessage("error");
-            json j;
-            j["message"]="删除贴子失败";
-            _context->GetResponse().SetBody(j.dump());
-            _context->GetConnection().send(_context->GetResponse());
+            //构建http响应并发送
+            _context->SetReSponseStatusANDUsefulHead(500,"error");
+            //json数据构建响应体
+            json j=
+            {
+                {"message","删除贴子失败"}
+            };
+            _context->SetResponseBody(std::move(j.dump()));
+            _context->Send();
+
             return false;
         }
     }
     catch(const std::exception& e)
     {//出错
         std::cerr<<"删帖失败且出错\n";
-        _context->SetUsefulHead();
-        _context->GetResponse().SetStatusCode(400);
-        _context->GetResponse().SetSatusMessage("error");
-        json j;
-        j["error"]=e.what();
-        _context->GetResponse().SetBody(j.dump());
-        _context->GetConnection().send(_context->GetResponse());
+        //构建http响应并发送
+        _context->SetReSponseStatusANDUsefulHead(400,"error");
+        //json数据构建响应体
+        json j=
+        {
+            {"error",e.what()}
+        };
+        _context->SetResponseBody(std::move(j.dump()));
+        _context->Send();
+
         return false;
     }
 }
+//查看用户自己的贴子
+bool PostController::HandleMyPosts(std::unique_ptr<HttpContext> _context)
+{
+    try
+    {
+        //获取用户id
+        json j=json::parse(_context->GetRequest().GetBody());
+        int userId=j["user_id"];
+        //获取贴子
+        std::vector<Post> posts=postService_.HandleCheckMyPosts(userId);
+        //根据情况发送http响应
+        if(posts.size()==0)
+        {//查看贴子成功
+            //构建http响应并发送
+            _context->SetReSponseStatusANDUsefulHead(200,"OK");
+            //json数据构建响应体
+            json jsonPosts=json::array();
+            for(int i=0;i<posts.size();i++)
+            {
+                jsonPosts.push_back(std::move(posts[i].ToJson()));
+            }
+            json j=
+            {
+                {"message","查看贴子成功"},
+                {"posts",jsonPosts}
+            };
+            _context->SetResponseBody(std::move(j.dump()));
+            _context->Send();
+            return true;
+        }else 
+        {//查看帖子失败
+            //构建http响应并发送
+            _context->SetReSponseStatusANDUsefulHead(500,"error");
+            //json数据构建响应体
+            json j=
+            {
+                {"message","查看贴子失败"},
+            };
+            _context->SetResponseBody(std::move(j.dump()));
+            _context->Send();
+            return false;
+        }
+    }
+    catch(const std::exception& e)
+    {//查看贴子出错
+        //构建http响应并发送
+        _context->SetReSponseStatusANDUsefulHead(400,"error");
+        //json数据构建响应体
+        json j=
+        {
+            {"error",e.what()},
+        };
+        _context->SetResponseBody(std::move(j.dump()));
+        _context->Send();
+        return false;
+    }
+    
+}   

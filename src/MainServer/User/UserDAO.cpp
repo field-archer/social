@@ -63,8 +63,8 @@ bool UserDAO::exist(int userId)
         //操作数据库
         mysqlx::SqlResult result=(*mysqlConnection).sql("select name from user where id = ?")
                             .bind(userId).execute();
-        //自动归还连接
         return result.count()==1;
+        //自动归还连接
     }
     catch(const std::exception& e)
     {

@@ -31,8 +31,41 @@ HttpConnection& HttpContext::GetConnection()
     return httpConnection_;
 }
 //设置常见响应头
-void HttpContext::SetUsefulHead()
+void HttpContext::SetResponseUsefulHead()
 {
     httpResponse_.SetHead("Content-Type", "application/json");
     httpResponse_.SetHead("Content-Length", std::to_string(httpResponse_.GetBody().size()));
+}
+
+//设置http响应状态码
+void HttpContext::SetResponseStatusCode(int _code)
+{
+    httpResponse_.SetStatusCode(_code);
+}
+//设置http响应状态信息
+void HttpContext::SetResponseStatusMessage(const std::string& _message)
+{
+    httpResponse_.SetSatusMessage(_message);
+}
+//增加http响应头部
+void HttpContext::AddResponseHead(const std::string _key,const std::string& _val)
+{
+    httpResponse_.SetHead(_key,_val);
+}
+//设置响应体状态码和状态行和常用请求头
+void HttpContext::SetReSponseStatusANDUsefulHead(int _code,const std::string& _message)
+{
+    SetResponseStatusCode(_code);
+    SetResponseStatusMessage(_message);
+    SetResponseUsefulHead();
+}
+//设置http响应响应头
+void HttpContext::SetResponseBody(std::string&& _body)
+{
+    httpResponse_.SetBody(std::move(_body));
+}
+//发送http响应
+void HttpContext::Send()
+{
+    httpConnection_.send(httpResponse_);
 }

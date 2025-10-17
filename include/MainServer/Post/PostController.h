@@ -16,4 +16,5 @@ public:
     bool HandlePublishPost(std::unique_ptr<HttpContext> _context);      //发表贴子
     bool HandleDeletePost(std::unique_ptr<HttpContext> _context);                                 //删除贴子
 
+    bool HandleMyPosts(std::unique_ptr<HttpContext> _context);           //查看用户自己的贴子
 };

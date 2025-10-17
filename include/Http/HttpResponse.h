@@ -16,7 +16,7 @@ public:
     void SetStatusCode(int _code);                                  //设置状态吗
     void SetSatusMessage(const std::string& _message);              //设置状态消息
     void SetHead(const std::string& _key,const std::string& _val);  //设置响应头
-    void SetBody(const std::string& _message);                      //设置响应体
+    void SetBody(std::string&& _message);                           //设置响应体
 
     int GetStatusCode_();                                           //得到状态码
     const std::string& GetstatusMessage();                          //得到状态信息

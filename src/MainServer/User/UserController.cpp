@@ -30,7 +30,6 @@ bool UserController::HandleSignUp(std::unique_ptr<HttpContext> _context)
     try
     {
         //从请求体中解析出json数据
-        // json j=json::parse(std::move(_context->GetRequestBody()));
         json j=json::parse(std::move(_context->GetRequest().GetBody()));
         std::string name=j["name"].get<std::string>();
         std::string email=j["email"].get<std::string>();
@@ -39,36 +38,30 @@ bool UserController::HandleSignUp(std::unique_ptr<HttpContext> _context)
         int userId=userService_->HandleSignUp(name,email,passwd);
         if(userId!=0)
         {//注册成功
-            _context->GetResponse().SetStatusCode(200);
-            _context->GetResponse().SetSatusMessage("OK");
+            _context->SetReSponseStatusANDUsefulHead(200,"OK");
             json j;
             j["message"]="用户注册成功";
             j["user_id"]=userId;
-            _context->GetResponse().SetBody(j.dump());
-            _context->SetUsefulHead();
-            _context->GetConnection().send(_context->GetResponse());
+            _context->SetResponseBody(std::move(j.dump()));
+            _context->Send();
             return true;
         }else 
         {//注册失败
-            _context->GetResponse().SetStatusCode(500);
-            _context->GetResponse().SetSatusMessage("error");
+            _context->SetReSponseStatusANDUsefulHead(500,"error");
             json j;
             j["message"]="用户注册失败";
-            _context->GetResponse().SetBody(j.dump());
-            _context->SetUsefulHead();
-            _context->GetConnection().send(_context->GetResponse());
+            _context->SetResponseBody(std::move(j.dump()));
+            _context->Send();
             return false;
         }
     }
     catch(const std::exception& e)
     {//解析失败
-        _context->GetResponse().SetStatusCode(400);
-        _context->GetResponse().SetSatusMessage("error");
+        _context->SetReSponseStatusANDUsefulHead(400,"error");
         json j;
         j["message"]="用户注册失败";
-        _context->GetResponse().SetBody(j.dump());
-        _context->SetUsefulHead();
-        _context->GetConnection().send(_context->GetResponse());
+        _context->SetResponseBody(std::move(j.dump()));
+        _context->Send();
         return false;
     }
 }
@@ -86,36 +79,30 @@ bool UserController::HandleLogIn(std::unique_ptr<HttpContext> _context)
         int userId=userService_->HandleLogIn(email,passwd);
         if(userId!=0)
         {//登录成功
-            _context->GetResponse().SetStatusCode(200);
-            _context->GetResponse().SetSatusMessage("OK");
+            _context->SetReSponseStatusANDUsefulHead(200,"OK");
             json j;
             j["message"]="用户登录成功";
             j["user_id"]=userId;
-            _context->GetResponse().SetBody(j.dump());
-            _context->SetUsefulHead();
-            _context->GetConnection().send(_context->GetResponse());
+            _context->SetResponseBody(std::move(j.dump()));
+            _context->Send();
             return true;
         }else 
         {//登录失败
-            _context->GetResponse().SetStatusCode(500);
-            _context->GetResponse().SetSatusMessage("error");
+            _context->SetReSponseStatusANDUsefulHead(500,"error");
             json j;
             j["message"]="用户登录失败";
-            _context->GetResponse().SetBody(j.dump());
-            _context->SetUsefulHead();
-            _context->GetConnection().send(_context->GetResponse());
+            _context->SetResponseBody(std::move(j.dump()));
+            _context->Send();
             return false;
         }
     }
     catch(const std::exception& e)
     {//解析失败
-        _context->GetResponse().SetStatusCode(400);
-        _context->GetResponse().SetSatusMessage("error");
+        _context->SetReSponseStatusANDUsefulHead(400,"error");
         json j;
         j["error"]=e.what();
-        _context->GetResponse().SetBody(j.dump());
-        _context->SetUsefulHead();
-        _context->GetConnection().send(_context->GetResponse());
+        _context->SetResponseBody(std::move(j.dump()));
+        _context->Send();
         return false;
     }
 }
