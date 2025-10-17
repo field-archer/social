@@ -19,6 +19,8 @@ public:
     int CreateUser(User& _user);                                 //创建用户，返回userId(0表失败)
     int LogIn(const std::string& _email,const std::string& _passwd);   //登录，返回userId(0表失败)
 
+    
+
     bool exist(int userId);                     //根据userId判断用户是否存在
 
 };
