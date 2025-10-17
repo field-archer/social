@@ -5,11 +5,11 @@
 /*
 http服务url的根路径是/home/aaa/Codes/HttpServer/root
 下一步：
-httpContext将设置状态码、状态信息、常用头封装，postController和userController中使用该封装
 改进：
 1.post，user表加索引
-2.用std::chrono::system_clock::time_point（封装成类/用c++20的format库）代替string接收post表中的create_time
-3.令HttpContext只能移动复制和移动构造，替换掉unique_ptr的频繁构造
+2.令HttpContext只能移动复制和移动构造，替换掉unique_ptr的频繁构造
+3.简易http请求，解析路径分出参数，代替消息体传参
+3.用std::chrono::system_clock::time_point（封装成类/用c++20的format库）代替string接收post表中的create_time
 */
 
 // HttpServer *httpServer;

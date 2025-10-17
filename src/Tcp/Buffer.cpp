@@ -22,6 +22,8 @@ Buffer::~Buffer()
 }
 void Buffer::Append(const char *data,size_t size)
 {
+    std::string str(data,size);
+    std::cout<<"发送的消息为"<<str<<"\n";
     buff_.append(data,size);
 }
 //头部+正文入buff_
@@ -37,7 +39,7 @@ void Buffer::AppendWithHead(const char *data,size_t size)
         buff_.append(data,size);
     }else if(sep_==2)
     {
-        //\r\n格式先不写
+        //\r\n格式
     }
 }
 void Buffer::erase(ssize_t pos,int len)
@@ -70,14 +72,22 @@ bool Buffer::getMessage(std::string& _message)
         uint32_t net_len;
         memcpy(&net_len,buff_.data(),4);
         int len=ntohl(net_len);
-        if(buff_.size()<len+4){printf("报文长度不够\n");return false;}  //不足一份报文，需后续处理
+        //不足一份报文，需后续处理
+        if(buff_.size()<len+4)
+        {
+            printf("报文长度不够\n");
+            // printf("报文为%s###\n",_message.c_str());
+            return false;
+        }
         _message.append(buff_.data()+4,len);
         // std::string message(buff_.data()+4,len);
         buff_.erase(0,len+4);
         
     }else if(sep_==2)
     {
-
+        _message.append(buff_.data(),size());
+        // printf("消息=%s###\n",buff_.c_str());
+        buff_.clear();
     }
     return true;
 }

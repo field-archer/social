@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园社交平台</title>
+    <style>
+        /* 样式保持不变 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary: #3498db;
+            --secondary: #2ecc71;
+            --danger: #e74c3c;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --gray: #95a5a6;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--dark);
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo::before {
+            content: "👥";
+            margin-right: 10px;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav li {
+            margin-left: 20px;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        
+        nav a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+        
+        .main-content {
+            display: flex;
+            margin-top: 30px;
+            gap: 30px;
+        }
+        
+        .sidebar {
+            flex: 0 0 250px;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .content {
+            flex: 1;
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .user-info {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .user-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        
+        .user-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .user-email {
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .sidebar-menu {
+            margin-top: 20px;
+        }
+        
+        .menu-item {
+            padding: 12px 15px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background 0.3s;
+        }
+        
+        .menu-item:hover {
+            background: var(--light);
+        }
+        
+        .menu-item.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .menu-icon {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        .section-title {
+            font-size: 22px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light);
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title::before {
+            content: "📌";
+            margin-right: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .post-form textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .posts-container {
+            margin-top: 30px;
+        }
+        
+        .post {
+            background: var(--light);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .post-user {
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        
+        .post-user::before {
+            content: "👤";
+            margin-right: 8px;
+        }
+        
+        .post-time {
+            color: var(--gray);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .post-time::before {
+            content: "🕒";
+            margin-right: 5px;
+        }
+        
+        .post-content {
+            margin-bottom: 15px;
+            line-height: 1.7;
+        }
+        
+        .post-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+        
+        .no-posts {
+            text-align: center;
+            padding: 40px;
+            color: var(--gray);
+        }
+        
+        .no-posts::before {
+            content: "📭";
+            font-size: 48px;
+            display: block;
+            margin-bottom: 15px;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            color: var(--gray);
+            border-top: 1px solid #eee;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                flex: 0 0 auto;
+                margin-bottom: 20px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            nav ul {
+                margin: 15px 0;
+                justify-content: center;
+            }
+            
+            .auth-buttons {
+                justify-content: center;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="logo">校园社交平台</div>
+            <nav>
+                <ul>
+                    <li><a href="#" class="nav-link" data-page="home">首页</a></li>
+                    <li><a href="#" class="nav-link" data-page="posts">我的帖子</a></li>
+                    <li><a href="#" class="nav-link" data-page="new-post">发帖</a></li>
+                </ul>
+            </nav>
+            <div class="auth-buttons">
+                <button id="login-btn" class="btn btn-primary">登录</button>
+                <button id="register-btn" class="btn btn-secondary">注册</button>
+                <button id="logout-btn" class="btn btn-danger hidden">退出</button>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="user-info">
+                    <div class="user-icon">👤</div>
+                    <div class="user-name" id="username-display">未登录</div>
+                    <div class="user-email" id="email-display">请登录或注册</div>
+                </div>
+                
+                <div class="sidebar-menu">
+                    <div class="menu-item active" data-page="home">
+                        <span class="menu-icon">🏠</span> 首页
+                    </div>
+                    <div class="menu-item" data-page="posts">
+                        <span class="menu-icon">📝</span> 我的帖子
+                    </div>
+                    <div class="menu-item" data-page="new-post">
+                        <span class="menu-icon">✏️</span> 发布新帖
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content">
+                <!-- 登录表单 -->
+                <div id="login-section">
+                    <h2 class="section-title">用户登录</h2>
+                    <div id="login-alert" class="alert hidden"></div>
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="login-email">邮箱</label>
+                            <input type="email" id="login-email" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">密码</label>
+                            <input type="password" id="login-password" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">登录</button>
+                    </form>
+                </div>
+                
+                <!-- 注册表单 -->
+                <div id="register-section" class="hidden">
+                    <h2 class="section-title">用户注册</h2>
+                    <div id="register-alert" class="alert hidden"></div>
+                    <form id="register-form">
+                        <div class="form-group">
+                            <label for="register-name">用户名</label>
+                            <input type="text" id="register-name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-email">邮箱</label>
+                            <input type="email" id="register-email" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-password">密码</label>
+                            <input type="password" id="register-password" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-confirm">确认密码</label>
+                            <input type="password" id="register-confirm" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-secondary">注册</button>
+                    </form>
+                </div>
+                
+                <!-- 发帖表单 -->
+                <div id="new-post-section" class="hidden">
+                    <h2 class="section-title">发布新帖</h2>
+                    <div id="post-alert" class="alert hidden"></div>
+                    <form id="post-form">
+                        <div class="form-group">
+                            <label for="post-content">帖子内容</label>
+                            <textarea id="post-content" class="form-control" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">发布</button>
+                    </form>
+                </div>
+                
+                <!-- 帖子列表 -->
+                <div id="posts-section" class="hidden">
+                    <h2 class="section-title">我的帖子</h2>
+                    <div id="posts-container" class="posts-container">
+                        <div class="no-posts">您还没有发布任何帖子</div>
+                    </div>
+                </div>
+                
+                <!-- 首页内容 -->
+                <div id="home-section">
+                    <h2 class="section-title">欢迎使用校园社交平台</h2>
+                    <p>这是一个简单的校园社交平台，您可以在这里：</p>
+                    <ul style="margin: 20px 0 20px 30px;">
+                        <li>注册新账户</li>
+                        <li>登录您的账户</li>
+                        <li>发布新帖子</li>
+                        <li>查看和管理您的帖子</li>
+                        <li>删除不再需要的帖子</li>
+                    </ul>
+                    <p>请使用顶部导航栏或左侧菜单开始使用本平台。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            <p>校园社交平台 &copy; 2025 - 学生项目</p>
+        </div>
+    </footer>
+    
+    <script>
+        // 全局状态
+        const state = {
+            currentUser: null,
+            currentPage: 'home'
+        };
+        
+        // DOM元素
+        const elements = {
+            loginBtn: document.getElementById('login-btn'),
+            registerBtn: document.getElementById('register-btn'),
+            logoutBtn: document.getElementById('logout-btn'),
+            navLinks: document.querySelectorAll('.nav-link'),
+            menuItems: document.querySelectorAll('.menu-item'),
+            loginSection: document.getElementById('login-section'),
+            registerSection: document.getElementById('register-section'),
+            newPostSection: document.getElementById('new-post-section'),
+            postsSection: document.getElementById('posts-section'),
+            homeSection: document.getElementById('home-section'),
+            loginForm: document.getElementById('login-form'),
+            registerForm: document.getElementById('register-form'),
+            postForm: document.getElementById('post-form'),
+            postsContainer: document.getElementById('posts-container'),
+            usernameDisplay: document.getElementById('username-display'),
+            emailDisplay: document.getElementById('email-display'),
+            loginAlert: document.getElementById('login-alert'),
+            registerAlert: document.getElementById('register-alert'),
+            postAlert: document.getElementById('post-alert')
+        };
+        
+        // API基础URL
+        const API_BASE_URL = 'http://192.168.38.121/api';
+        
+        // 初始化页面
+        function init() {
+            // 检查本地存储中是否有登录信息
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                state.currentUser = JSON.parse(savedUser);
+                updateUIForLoggedInUser();
+            }
+            
+            // 事件监听器
+            elements.loginBtn.addEventListener('click', showLogin);
+            elements.registerBtn.addEventListener('click', showRegister);
+            elements.logoutBtn.addEventListener('click', logout);
+            
+            elements.navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    navigateToPage(e.target.dataset.page);
+                });
+            });
+            
+            elements.menuItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    navigateToPage(item.dataset.page);
+                });
+            });
+            
+            elements.loginForm.addEventListener('submit', handleLogin);
+            elements.registerForm.addEventListener('submit', handleRegister);
+            elements.postForm.addEventListener('submit', handlePostSubmit);
+            
+            // 默认显示首页
+            navigateToPage('home');
+        }
+        
+        // 导航到指定页面
+        function navigateToPage(page) {
+            // 隐藏所有内容区域
+            elements.loginSection.classList.add('hidden');
+            elements.registerSection.classList.add('hidden');
+            elements.newPostSection.classList.add('hidden');
+            elements.postsSection.classList.add('hidden');
+            elements.homeSection.classList.add('hidden');
+            
+            // 移除所有菜单项的active类
+            elements.menuItems.forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // 根据页面显示对应内容
+            switch(page) {
+                case 'login':
+                    elements.loginSection.classList.remove('hidden');
+                    break;
+                case 'register':
+                    elements.registerSection.classList.remove('hidden');
+                    break;
+                case 'new-post':
+                    if (!state.currentUser) {
+                        showLogin();
+                        return;
+                    }
+                    elements.newPostSection.classList.remove('hidden');
+                    break;
+                case 'posts':
+                    if (!state.currentUser) {
+                        showLogin();
+                        return;
+                    }
+                    elements.postsSection.classList.remove('hidden');
+                    loadUserPosts();
+                    break;
+                case 'home':
+                default:
+                    elements.homeSection.classList.remove('hidden');
+                    break;
+            }
+            
+            // 设置当前页面
+            state.currentPage = page;
+            
+            // 设置活动菜单项
+            const activeMenuItem = document.querySelector(`.menu-item[data-page="${page}"]`);
+            if (activeMenuItem) {
+                activeMenuItem.classList.add('active');
+            }
+        }
+        
+        // 显示登录表单
+        function showLogin() {
+            navigateToPage('login');
+        }
+        
+        // 显示注册表单
+        function showRegister() {
+            navigateToPage('register');
+        }
+        
+        // 处理登录
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/user/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        passwd: password
+                    })
+                });
+                
+                // 修复：先检查响应状态
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    showAlert(elements.loginAlert, errorData.message || '登录失败，请重试', 'error');
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                // 修复：更严格的响应检查
+                if (data && data.user_id) {
+                    // 登录成功
+                    state.currentUser = {
+                        id: data.user_id,
+                        name: data.name || email.split('@')[0] || '用户',
+                        email: email
+                    };
+                    
+                    // 保存到本地存储
+                    localStorage.setItem('currentUser', JSON.stringify(state.currentUser));
+                    
+                    // 更新UI
+                    updateUIForLoggedInUser();
+                    
+                    // 显示成功消息
+                    showAlert(elements.loginAlert, data.message || '登录成功！', 'success');
+                    
+                    // 导航到首页
+                    setTimeout(() => {
+                        navigateToPage('home');
+                    }, 1500);
+                } else {
+                    // 登录失败
+                    showAlert(elements.loginAlert, data.message || '登录失败，请重试', 'error');
+                }
+            } catch (error) {
+                console.error('登录错误详情:', error);
+                showAlert(elements.loginAlert, '网络错误，请检查后端服务是否正常运行', 'error');
+            }
+        }
+        
+        // 处理注册
+        async function handleRegister(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const confirm = document.getElementById('register-confirm').value;
+            
+            if (password !== confirm) {
+                showAlert(elements.registerAlert, '两次输入的密码不一致', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/user/signup`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        email: email,
+                        passwd: password
+                    })
+                });
+                
+                // 修复：先检查响应状态
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    showAlert(elements.registerAlert, errorData.message || '注册失败，请重试', 'error');
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (data && data.user_id) {
+                    // 注册成功
+                    showAlert(elements.registerAlert, data.message || '注册成功！', 'success');
+                    
+                    // 自动填充登录表单
+                    document.getElementById('login-email').value = email;
+                    document.getElementById('login-password').value = password;
+                    
+                    // 自动登录
+                    setTimeout(() => {
+                        handleLogin(e);
+                    }, 1500);
+                } else {
+                    // 注册失败
+                    showAlert(elements.registerAlert, data.message || '注册失败，请重试', 'error');
+                }
+            } catch (error) {
+                console.error('注册错误详情:', error);
+                showAlert(elements.registerAlert, '网络错误，请检查后端服务是否正常运行', 'error');
+            }
+        }
+        
+        // 处理发帖
+        async function handlePostSubmit(e) {
+            e.preventDefault();
+            
+            if (!state.currentUser) {
+                showAlert(elements.postAlert, '请先登录', 'error');
+                return;
+            }
+            
+            const content = document.getElementById('post-content').value;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/post/publish`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: content,
+                        user_id: state.currentUser.id
+                    })
+                });
+                
+                // 修复：先检查响应状态
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    showAlert(elements.postAlert, errorData.message || '发帖失败，请重试', 'error');
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (data && data.post_id) {
+                    // 发帖成功
+                    showAlert(elements.postAlert, data.message || '发帖成功！', 'success');
+                    
+                    // 清空表单
+                    document.getElementById('post-content').value = '';
+                    
+                    // 刷新帖子列表
+                    if (state.currentPage === 'posts') {
+                        loadUserPosts();
+                    }
+                } else {
+                    // 发帖失败
+                    showAlert(elements.postAlert, data.message || '发帖失败，请重试', 'error');
+                }
+            } catch (error) {
+                console.error('发帖错误详情:', error);
+                showAlert(elements.postAlert, '网络错误，请检查后端服务是否正常运行', 'error');
+            }
+        }
+        
+        // 加载用户帖子 - 修复版
+        async function loadUserPosts() {
+            if (!state.currentUser) return;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/post/check/my`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        user_id: state.currentUser.id
+                    })
+                });
+                
+                // 修复：先检查响应状态
+                if (!response.ok) {
+                    throw new Error('获取帖子失败');
+                }
+                
+                const data = await response.json();
+                console.log('API响应数据:', data); // 调试日志
+                
+                // 清空容器
+                elements.postsContainer.innerHTML = '';
+                
+                // 修复：检查响应结构
+                if (!data || !data.posts || data.posts.length === 0) {
+                    elements.postsContainer.innerHTML = '<div class="no-posts">您还没有发布任何帖子</div>';
+                    return;
+                }
+                
+                // 渲染帖子
+                data.posts.forEach(post => {
+                    const postElement = document.createElement('div');
+                    postElement.className = 'post';
+                    postElement.innerHTML = `
+                        <div class="post-header">
+                            <div class="post-user">用户 ${post.user_id}</div>
+                            <div class="post-time">${formatDate(post.create_time)}</div>
+                        </div>
+                        <div class="post-content">${post.content}</div>
+                        <div class="post-actions">
+                            <button class="btn btn-danger delete-post" data-id="${post.post_id}">删除</button>
+                        </div>
+                    `;
+                    elements.postsContainer.appendChild(postElement);
+                });
+                
+                // 添加删除事件监听器
+                document.querySelectorAll('.delete-post').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const postId = button.dataset.id;
+                        deletePost(postId);
+                    });
+                });
+            } catch (error) {
+                console.error('加载帖子错误:', error);
+                elements.postsContainer.innerHTML = '<div class="alert alert-error">加载帖子失败，请稍后再试</div>';
+            }
+        }
+        
+        // 删除帖子
+async function deletePost(postId) {
+    if (!confirm('确定要删除这篇帖子吗？')) return;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/post/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                post_id: parseInt(postId)  // 将post_id转换为整数
+            })
+        });
+        
+        if (response.ok) {
+            // 删除成功，刷新列表
+            loadUserPosts();
+        } else {
+            alert('删除失败，请重试');
+        }
+    } catch (error) {
+        console.error('删除帖子错误:', error);
+        alert('网络错误，请稍后再试');
+    }
+}
+        
+        // 退出登录
+        function logout() {
+            state.currentUser = null;
+            localStorage.removeItem('currentUser');
+            updateUIForLoggedOutUser();
+            navigateToPage('home');
+        }
+        
+        // 更新UI为登录状态
+        function updateUIForLoggedInUser() {
+            elements.loginBtn.classList.add('hidden');
+            elements.registerBtn.classList.add('hidden');
+            elements.logoutBtn.classList.remove('hidden');
+            
+            elements.usernameDisplay.textContent = state.currentUser.name;
+            elements.emailDisplay.textContent = state.currentUser.email;
+        }
+        
+        // 更新UI为未登录状态
+        function updateUIForLoggedOutUser() {
+            elements.loginBtn.classList.remove('hidden');
+            elements.registerBtn.classList.remove('hidden');
+            elements.logoutBtn.classList.add('hidden');
+            
+            elements.usernameDisplay.textContent = '未登录';
+            elements.emailDisplay.textContent = '请登录或注册';
+        }
+        
+        // 显示提示消息
+        function showAlert(element, message, type) {
+            element.textContent = message;
+            element.className = `alert alert-${type}`;
+            element.classList.remove('hidden');
+            
+            // 3秒后隐藏
+            setTimeout(() => {
+                element.classList.add('hidden');
+            }, 3000);
+        }
+        
+        // 格式化日期
+        function formatDate(dateString) {
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleString('zh-CN', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch (e) {
+                return dateString;
+            }
+        }
+        
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

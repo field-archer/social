@@ -47,12 +47,12 @@ public:
 
     std::string sendRequest(const std::string& request) {
         // 添加4字节长度前缀
-        uint32_t len = htonl(static_cast<uint32_t>(request.size()));
+        // uint32_t len = htonl(static_cast<uint32_t>(request.size()));
         std::string prefixed_request;
-        prefixed_request.resize(4 + request.size());
+        prefixed_request.resize(request.size());
         
-        memcpy(&prefixed_request[0], &len, 4);
-        memcpy(&prefixed_request[4], request.c_str(), request.size());
+        // memcpy(&prefixed_request[0], &len, 4);
+        memcpy(&prefixed_request[0], request.c_str(), request.size());
 
         // 发送请求
         if (send(sock, prefixed_request.c_str(), prefixed_request.size(), 0) < 0) {
@@ -60,19 +60,22 @@ public:
         }
 
         // 接收响应长度前缀
-        uint32_t response_len_net;
-        int bytes_read = recv(sock, &response_len_net, 4, 0);
-        if (bytes_read != 4) {
-            return "Failed to read length prefix";
-        }
-        uint32_t response_len = ntohl(response_len_net);
+        // uint32_t response_len_net;
+        // int bytes_read = recv(sock, &response_len_net, 4, 0);
+        // if (bytes_read != 4) {
+            // return "Failed to read length prefix";
+        // }
+        // uint32_t response_len = ntohl(response_len_net);
 
         // 接收响应主体
-        std::string response(response_len, '\0');
-        bytes_read = recv(sock, &response[0], response_len, 0);
-        if (bytes_read != static_cast<int>(response_len)) {
-            return "Incomplete response received";
-        }
+        int maxsize=1024;
+        char buff[maxsize]="";
+        int bytes_read = recv(sock, buff, maxsize, 0);
+        // if (bytes_read != static_cast<int>(response_len)) {
+            // return "Incomplete response received";
+            // }
+        std::string response(buff,bytes_read);
+
 
         return response;
     }

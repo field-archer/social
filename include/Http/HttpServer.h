@@ -50,6 +50,5 @@ public:
 
     void SetPublishPost(httpHandler _fun);                                      //设置发帖回调函数
     void SetDeletePost(httpHandler _fun);                                       //设置删帖回调函数
-
-
+    void SetCheckMyPosts(httpHandler _fun);                                     //设置查看自己的贴子回调函数
 };

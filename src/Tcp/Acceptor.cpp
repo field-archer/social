@@ -8,7 +8,7 @@ Acceptor::Acceptor(std::string _ip,uint16_t _port,EventLoop* _eventLoop)
     servSocket.SetTcpNoDelay();                            //小数据包延迟
     servSocket.SetKeepAlive();                             //僵尸连接
 
-    servSocket.bind(InetAddr(_ip,_port));                  //绑定
+    servSocket.bind(InetAddr("0.0.0.0",_port));                  //绑定
     servSocket.listen(128);                                //监听（128）
 
     servChannel.EnableReading();                           //注册读事件

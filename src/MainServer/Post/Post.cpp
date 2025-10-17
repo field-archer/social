@@ -22,7 +22,7 @@ Post::Post(std::unique_ptr<std::string> _content,int _userId):
 
 }
 //构造函数，post_移动
-Post::Post(int _userId,std::unique_ptr<std::string> _content,int _postId,std::string _createTime):
+Post::Post(int _postId,std::unique_ptr<std::string> _content,int _userId,std::string _createTime):
     postId_(_postId),content_(std::move(_content)),userId_(_userId),createTime_(std::move(_createTime))
 {
 
@@ -53,7 +53,7 @@ void Post::SetPostId(int _postId)
 {
     postId_=_postId;
 }   
-//转换为json数据
+// 转换为json数据
 json Post::ToJson()
 {
     json j=
@@ -65,3 +65,40 @@ json Post::ToJson()
     };
     return j;
 }
+//返回发帖时间
+std::string Post::GetCreateTime() const
+{
+    return createTime_;
+}
+
+// json Post::ToJson()
+// {
+//     // 检查所有字段
+//     printf("PostID: %d\n", postId_);
+//     printf("UserID: %d\n", userId_);
+//     printf("CreateTime: %s\n", createTime_.c_str());
+//     printf("Content: %s\n", content_->c_str());
+    
+//     // 十六进制输出所有字符串
+//     auto hexDump = [](const std::string& str) {
+//         printf("Hex: ");
+//         for (char c : str) {
+//             printf("%02X ", static_cast<unsigned char>(c));
+//         }
+//         printf("\n");
+//     };
+    
+//     // hexDump(postId_);
+//     hexDump(*content_);
+//     hexDump(createTime_);
+    
+//     // ...
+//     json j=
+//     {
+//         {"post_id",postId_},
+//         {"content",*content_},
+//         {"user_id",userId_},
+//         {"create_time",createTime_}
+//     };
+//     return j;
+// }

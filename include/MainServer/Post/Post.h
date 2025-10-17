@@ -29,6 +29,7 @@ public:
     std::unique_ptr<std::string> GetContent_unique();       //返回贴子内容的unique指针，慎用
     std::string GetContent();                               //返回贴子内容的副本
     int GetUserId();                                        //返回发帖者id
+    std::string GetCreateTime() const;                            //返回发帖时间
 
     void SetPostId(int _postId);                                       //设置贴子id
 

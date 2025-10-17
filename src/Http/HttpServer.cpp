@@ -106,3 +106,8 @@ void HttpServer::SetDeletePost(httpHandler _fun)
 {
     PostHandler_["/api/post/delete"]=_fun;
 }
+//设置查看自己的贴子回调函数
+void HttpServer::SetCheckMyPosts(httpHandler _fun)
+{
+    PostHandler_["/api/post/check/my"]=_fun;
+}

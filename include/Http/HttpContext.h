@@ -21,7 +21,7 @@ public:
     HttpResponse& GetResponse();                                                //返回响应体，慎用，不要存储返回值
     HttpConnection& GetConnection();                                            //返回连接，慎用，不要存储返回值
 
-    std::string GetRequestBody();                                               //返回请求体
+    // std::string GetRequestBody();                                               //返回请求体
 
     void SetReSponseStatusANDUsefulHead(int _code,const std::string& _message); //设置响应体状态码和状态行和常用请求头
     void SetResponseBody(std::string&& _body);                                  //设置http响应响应头

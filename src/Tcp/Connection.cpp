@@ -33,7 +33,7 @@ int Connection::fd()
 }
 void Connection::HandleReadEvent()                                                                 //调用读回调函数
 {
-    //接收消息并洗出正文（头部+正文）
+    //接收消息并洗出正文
     static int maxsize=1024;
     char buffer[maxsize];
     while(true)
@@ -89,7 +89,8 @@ void Connection::send(std::string _message)
 }
 void Connection::sendInIOThread(std::shared_ptr<std::string>message)                                                                  //在IO线程（事件循环线程）中发送
 {
-    outputBuffer.AppendWithHead(message->data(),message->size());     //写入outputBuffer
+    outputBuffer.Append(message->data(),message->size());
+    // outputBuffer.AppendWithHead(message->data(),message->size());     //写入outputBuffer
     clieChannel_->EnableWriting();
 }
 

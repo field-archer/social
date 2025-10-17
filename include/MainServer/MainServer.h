@@ -53,4 +53,5 @@ public:
     //贴子服务
     void PublishPost(upContext _context);           //发表贴子
     void DeletePost(upContext _context);            //删除贴子
+    void CheckMyPosts(upContext _context);          //查看自己的贴子
 };

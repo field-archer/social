@@ -38,29 +38,29 @@ bool UserController::HandleSignUp(std::unique_ptr<HttpContext> _context)
         int userId=userService_->HandleSignUp(name,email,passwd);
         if(userId!=0)
         {//注册成功
-            _context->SetReSponseStatusANDUsefulHead(200,"OK");
             json j;
             j["message"]="用户注册成功";
             j["user_id"]=userId;
             _context->SetResponseBody(std::move(j.dump()));
+            _context->SetReSponseStatusANDUsefulHead(200,"OK");
             _context->Send();
             return true;
         }else 
         {//注册失败
-            _context->SetReSponseStatusANDUsefulHead(500,"error");
             json j;
             j["message"]="用户注册失败";
             _context->SetResponseBody(std::move(j.dump()));
+            _context->SetReSponseStatusANDUsefulHead(500,"error");
             _context->Send();
             return false;
         }
     }
     catch(const std::exception& e)
     {//解析失败
-        _context->SetReSponseStatusANDUsefulHead(400,"error");
         json j;
         j["message"]="用户注册失败";
         _context->SetResponseBody(std::move(j.dump()));
+        _context->SetReSponseStatusANDUsefulHead(400,"error");
         _context->Send();
         return false;
     }
@@ -79,29 +79,29 @@ bool UserController::HandleLogIn(std::unique_ptr<HttpContext> _context)
         int userId=userService_->HandleLogIn(email,passwd);
         if(userId!=0)
         {//登录成功
-            _context->SetReSponseStatusANDUsefulHead(200,"OK");
             json j;
             j["message"]="用户登录成功";
             j["user_id"]=userId;
             _context->SetResponseBody(std::move(j.dump()));
+            _context->SetReSponseStatusANDUsefulHead(200,"OK");
             _context->Send();
             return true;
         }else 
         {//登录失败
-            _context->SetReSponseStatusANDUsefulHead(500,"error");
             json j;
             j["message"]="用户登录失败";
             _context->SetResponseBody(std::move(j.dump()));
+            _context->SetReSponseStatusANDUsefulHead(500,"error");
             _context->Send();
             return false;
         }
     }
     catch(const std::exception& e)
     {//解析失败
-        _context->SetReSponseStatusANDUsefulHead(400,"error");
         json j;
         j["error"]=e.what();
         _context->SetResponseBody(std::move(j.dump()));
+        _context->SetReSponseStatusANDUsefulHead(400,"error");
         _context->Send();
         return false;
     }

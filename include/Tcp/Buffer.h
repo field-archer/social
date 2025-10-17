@@ -1,5 +1,6 @@
 #pragma once
 #include<string>
+#include<iostream>
 #include<string.h>
 #include<cstdint>
 #include<arpa/inet.h>
@@ -10,7 +11,7 @@ private:
     std::string buff_;
     const int sep_;             //分隔符：0---无，1---报文头部4字节表长度，2------\r\n
 public:
-    Buffer(int _sep=1);
+    Buffer(int _sep=2);
     ~Buffer();
     void Append(const char *data,size_t size);
     void AppendWithHead(const char *data,size_t size);  //头部+正文入buff_

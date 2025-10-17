@@ -22,6 +22,7 @@ MainServer::MainServer(const std::string& _ip,uint16_t _port,int _eventLoopNum,i
     httpServer_.SetLogIn(std::bind(&MainServer::LogIn,this,std::placeholders::_1));     //用户登录
     httpServer_.SetPublishPost(std::bind(&MainServer::PublishPost,this,std::placeholders::_1)); //发表贴子
     httpServer_.SetDeletePost(std::bind(&MainServer::DeletePost,this,std::placeholders::_1));   //删除贴子
+    httpServer_.SetCheckMyPosts(std::bind(&MainServer::CheckMyPosts,this,std::placeholders::_1));//查看自己的贴子
     //UserController依赖
     UserDAO* userDAO = new UserDAO(mysqlPool_);
     UserService* userService= new UserService(std::move(std::unique_ptr<UserDAO>(userDAO)));
@@ -63,4 +64,9 @@ void MainServer::PublishPost(upContext _context)
 void MainServer::DeletePost(upContext _context)
 {
     postController_.HandleDeletePost(std::move(_context));
+}
+//查看自己的贴子
+void  MainServer::CheckMyPosts(upContext _context)
+{
+    postController_.HandleMyPosts(std::move(_context));
 }

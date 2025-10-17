@@ -20,12 +20,12 @@ set(client Client/client.cpp)
 find_package(mysql-concpp REQUIRED)#MYSQL的xdevapi
 find_package(nlohmann_json 3.11.3 REQUIRED)
 
-add_executable(client ${client})
-add_executable(server ${server})
+add_executable(cccccc ${client})
+add_executable(ssssss ${server})
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
-target_link_libraries(server PRIVATE mysql::concpp-xdevapi)#MYSQL的xdevapi
-target_link_libraries(server PRIVATE nlohmann_json::nlohmann_json)
-target_link_libraries(client PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(ssssss PRIVATE mysql::concpp-xdevapi)#MYSQL的xdevapi
+target_link_libraries(ssssss PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(cccccc PRIVATE nlohmann_json::nlohmann_json)
 
 
